@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header text-center py-4"
+                style="background-color: var(--primary-navy); border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <h4 class="text-white mb-0 fw-bold">Login</h4>
+            </div>
+            <div class="card-body p-5">
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-accent btn-lg shadow-sm">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center bg-white py-3 border-0">
+                <small class="text-muted">School Management System</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

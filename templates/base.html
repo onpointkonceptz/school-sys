@@ -1,0 +1,142 @@
+{% load django_bootstrap5 %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management System</title>
+    <!-- Google Fonts for Modern Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <style>
+        :root {
+            --primary-navy: #001f3f;
+            --accent-orange: #ff851b;
+            --bg-light: #f4f6f9;
+            --text-dark: #333;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-dark);
+        }
+
+        .navbar {
+            background-color: var(--primary-navy) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: #fff !important;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-orange) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-navy);
+            border-color: var(--primary-navy);
+        }
+
+        .btn-primary:hover {
+            background-color: #001830;
+            border-color: #001830;
+        }
+
+        .btn-accent,
+        .btn-orange {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+        }
+
+        .btn-accent:hover {
+            background-color: #e0740e;
+            color: white;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            background: #fff;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 2px solid var(--bg-light);
+            font-weight: 600;
+            color: var(--primary-navy);
+            padding: 1.25rem;
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .badge-role {
+            background-color: var(--accent-orange);
+            color: white;
+            padding: 0.5em 0.8em;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container-fluid container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="bi bi-mortarboard-fill me-2"></i>SchoolSys
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto">
+                    <!-- Add nav items here if needed -->
+                </ul>
+                <div class="d-flex align-items-center">
+                    {% if user.is_authenticated %}
+                    <span class="navbar-text me-3 text-white">
+                        {{ user.username }} <span class="badge bg-warning text-dark ms-1">{{ user.get_role_display
+                            }}</span>
+                    </span>
+                    <a href="/admin/logout/" class="btn btn-outline-light btn-sm rounded-pill px-3">Logout</a>
+                    {% else %}
+                    <a href="/admin/login/" class="btn btn-accent btn-sm rounded-pill px-3">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer class="text-center mt-5 py-4 text-muted bg-white border-top">
+        <small>&copy; 2024 School Management System | Powered by Django</small>
+    </footer>
+</body>
+
+</html>

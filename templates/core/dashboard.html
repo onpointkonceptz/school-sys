@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col">
+        <h1 class="display-5 fw-bold" style="color: var(--primary-navy);">Dashboard</h1>
+        <p class="text-muted">Welcome back, {{ user.first_name|default:user.username }}!</p>
+    </div>
+    <div class="col-auto">
+        <a href="/admin/" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-gear-fill me-1"></i> Admin Panel
+        </a>
+    </div>
+</div>
+
+{% if is_chairman or user.role == 'CHAIRMAN' %}
+<div class="row g-4">
+    <div class="col-12">
+        <h5 class="text-uppercase text-secondary fw-bold" style="letter-spacing: 1px;">Financial Overview</h5>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-start border-5 border-success position-relative overflow-hidden">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted mb-2">Total Revenue</h6>
+                <h2 class="display-6 fw-bold text-success mb-0">₦{{ total_revenue }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-start border-5 border-danger">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted mb-2">Total Expenditure</h6>
+                <h2 class="display-6 fw-bold text-danger mb-0">₦{{ total_expenditure }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                Recent Transactions
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for t in recent_transactions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold d-block">{{ t.student }}</span>
+                        <small class="text-muted">{{ t.date_paid|date:"M d, Y" }}</small>
+                    </div>
+                    <span class="badge bg-success rounded-pill">₦{{ t.amount_paid }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-center text-muted py-4">No transactions recorded yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user.role == 'PRINCIPAL' or user.is_superuser %}
+<div class="row mt-5 g-4">
+    <div class="col-12">
+        <h5 class="text-uppercase text-secondary fw-bold" style="letter-spacing: 1px;">Operations</h5>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center py-4">
+            <div class="card-body">
+                <div class="display-2 fw-bold" style="color: var(--primary-navy);">{{ total_students }}</div>
+                <p class="text-muted mb-0">Total Enrolled Students</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                <span>Inventory Alerts</span>
+                {% if low_stock_items %}<span class="badge bg-danger">Action Needed</span>{% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Item Name</th>
+                                <th class="text-end pe-4">Stock Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in low_stock_items %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">{{ item.name }}</td>
+                                <td class="text-end pe-4">
+                                    <span class="text-danger fw-bold">{{ item.stock_remaining }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted py-4">
+                                    <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-2"></i>
+                                    Inventory levels are healthy.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user.role == 'ACCOUNT_OFFICER' or user.role == 'CASHIER' %}
+<div class="row mt-5 g-4">
+    <div class="col-12">
+        <h5 class="text-uppercase text-secondary fw-bold" style="letter-spacing: 1px;">Accounts Overview</h5>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow h-100"
+            style="background: linear-gradient(135deg, #ff851b 0%, #ff4136 100%); color: white;">
+            <div class="card-body p-4">
+                <h5 class="card-title text-white-50">Outstanding Debts</h5>
+                <h2 class="display-4 fw-bold mb-0">₦{{ outstanding_fees }}</h2>
+                <p class="mt-2 text-white-50">Total uncollected fees</p>
+            </div>
+        </div>
+    </div>
+    <!-- Add other cashier cards here -->
+</div>
+{% endif %}
+
+{% if user.role == 'TEACHER' %}
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">My Classroom</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for s in my_students %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ s.first_name }} {{ s.last_name }}</span>
+                        <span class="badge bg-light text-dark">{{ s.class_grade }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center py-4 text-muted">No students assigned.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
