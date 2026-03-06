@@ -85,6 +85,9 @@ if _db_url:
         'default': dj_database_url.parse(_db_url, conn_max_age=600)
     }
 else:
+    # If running on typical local path, use SQLite, but if it looks like production (e.g. RAILWAY_ENVIRONMENT variable), crash hard to prevent silent failure
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        raise Exception("CRITICAL: DATABASE_URL is missing in production on Railway! The DB is not linked.")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
