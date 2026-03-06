@@ -4,7 +4,7 @@ node = "20"
 
 [build]
 builder = "nixpacks"
-buildCommand = "cd frontend && npm install && npm run build && cd .. && python manage.py migrate && python manage.py collectstatic --noinput"
+buildCommand = "cd frontend && npm install && npm run build && cd .. && python manage.py migrate && python manage.py createadmin && python manage.py collectstatic --noinput"
 
 [start]
-cmd = "sleep 3 && python create_superuser.py && gunicorn config.wsgi --log-file -"
+cmd = "gunicorn config.wsgi --log-file -"
