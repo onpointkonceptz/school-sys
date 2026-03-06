@@ -1,8 +1,0 @@
-[build]
-builder = "nixpacks"
-nixpacksPlan = { providers = ["python", "node"] }
-buildCommand = "cd frontend && npm install && npm run build && cd .."
-
-[deploy]
-startCommand = "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi --log-file -"
-healthcheckPath = "/api/login/"

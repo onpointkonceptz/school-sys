@@ -1,0 +1,10 @@
+[providers]
+python = "3.12"
+node = "20"
+
+[build]
+builder = "nixpacks"
+buildCommand = "cd frontend && npm install && npm run build && cd .. && python manage.py migrate && python manage.py collectstatic --noinput"
+
+[start]
+cmd = "gunicorn config.wsgi --log-file -"
