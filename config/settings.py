@@ -116,7 +116,8 @@ STATICFILES_DIRS = [
 ]
 
 # WhiteNoise: serve compressed static files efficiently in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Disabled manifest storage to prevent strict 500 errors on missing static references
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
