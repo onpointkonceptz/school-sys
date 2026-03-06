@@ -112,7 +112,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    BASE_DIR / 'frontend/dist',
+    p for p in [BASE_DIR / 'frontend/dist'] if p.exists()
 ]
 
 # WhiteNoise: serve compressed static files efficiently in production
