@@ -20,9 +20,19 @@ def login_api(request):
     username = request.data.get('username')
     password = request.data.get('password')
     
+    print(f"DEBUG LOGIN: Attempting login for username: '{username}'")
+    
+    # Check if user actually exists in DB
+    try:
+        user_exists = CustomUser.objects.filter(username=username).exists()
+        print(f"DEBUG LOGIN: User '{username}' exists in database: {user_exists}")
+    except Exception as e:
+        print(f"DEBUG LOGIN: Database error checking user: {e}")
+        
     user = authenticate(request, username=username, password=password)
     
     if user is not None:
+        print(f"DEBUG LOGIN: Authentication successful for '{username}'")
         login(request, user)
         return Response({
             'success': True,
@@ -30,6 +40,7 @@ def login_api(request):
             'name': user.get_full_name() or user.username
         })
     else:
+        print(f"DEBUG LOGIN: Authentication FAILED for '{username}' (invalid password or user does not exist)")
         return Response({'success': False, 'error': 'Invalid credentials'}, status=400)
 
 @api_view(['POST'])
