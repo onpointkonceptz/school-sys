@@ -150,7 +150,15 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-] + ([_prod_origin] if _prod_origin else [])
+]
+if _prod_origin:
+    # Ensure it's split by comma if user accidentally pasted multiple, and enforce https://
+    for origin in _prod_origin.split(','):
+        origin = origin.strip()
+        if origin:
+            if not origin.startswith(('http://', 'https://')):
+                origin = 'https://' + origin
+            CSRF_TRUSTED_ORIGINS.append(origin)
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = not DEBUG  # True in production (HTTPS)
