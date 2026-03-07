@@ -140,7 +140,9 @@ REST_FRAMEWORK = {
     ],
 }
 
-_prod_origin = os.environ.get('PRODUCTION_ORIGIN', '')
+_prod_origin = os.environ.get('PRODUCTION_ORIGIN', '').strip()
+if _prod_origin and not _prod_origin.startswith(('http://', 'https://')):
+    _prod_origin = 'https://' + _prod_origin
 
 CORS_ALLOW_ALL_ORIGINS = True  # Safe — API uses session auth + CSRF tokens
 CORS_ALLOW_CREDENTIALS = True
