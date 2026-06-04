@@ -22,8 +22,6 @@ def dashboard_stats(request):
     for code, label in Student.ClassGrade.choices:
         students = Student.objects.filter(class_grade=code)
         total = students.count()
-        boarding = students.filter(student_type=Student.StudentType.BOARDING).count()
-        day = students.filter(student_type=Student.StudentType.DAY).count()
         
         # Fee Stats
         # Get all fees for students in this class
@@ -42,8 +40,6 @@ def dashboard_stats(request):
             'code': code,
             'label': label,
             'total_students': total,
-            'boarding': boarding,
-            'day': day,
             'fully_paid': fully_paid,
             'with_outstanding': with_debt
         })
@@ -86,11 +82,9 @@ def student_list_create(request):
                 'last_name': s.last_name,
                 'class_grade': s.get_class_grade_display(),
                 'class_grade_code': s.class_grade,
-                'student_type': s.get_student_type_display(),
                 'student_status': s.get_student_status_display(),
                 'parent_name': s.parent_name,
                 'parent_phone': s.parent_phone,
-                'is_boarding': s.student_type == Student.StudentType.BOARDING,
                 'full_name': f"{s.first_name} {s.last_name}",
                 # Fee Details
                 'total_fees': fee.total_amount_payable if fee else 0,
@@ -131,7 +125,6 @@ def student_detail(request, pk):
             'first_name': student.first_name,
             'last_name': student.last_name,
             'class_grade': student.class_grade,
-            'student_type': student.student_type,
             'student_status': student.student_status,
             'parent_name': student.parent_name,
             'parent_phone': student.parent_phone,
@@ -248,7 +241,6 @@ def preview_promotion(request):
             'full_name': f"{s.first_name} {s.last_name}",
             'admission_number': s.admission_number,
             'class_grade': s.class_grade,
-            'student_type': s.student_type,
             'qualifies': qualifies,
             'grade_status': status_label,
             'total_grades': grades.count(),

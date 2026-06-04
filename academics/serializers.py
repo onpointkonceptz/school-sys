@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Subject, SubjectAllocation, GradeRecord, StudentReport, GradingScale
+from .models import (
+    Subject, SubjectAllocation, GradeRecord, StudentReport, 
+    GradingScale, LessonPlan, TimetableEntry, StudentAttendance
+)
 
 class GradingScaleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,4 +42,28 @@ class GradeRecordSerializer(serializers.ModelSerializer):
 class StudentReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentReport
+        fields = '__all__'
+
+class LessonPlanSerializer(serializers.ModelSerializer):
+    teacher_name = serializers.CharField(source='teacher.get_full_name', read_only=True)
+    subject_name = serializers.CharField(source='subject.name', read_only=True)
+    
+    class Meta:
+        model = LessonPlan
+        fields = '__all__'
+
+class TimetableEntrySerializer(serializers.ModelSerializer):
+    subject_name = serializers.CharField(source='subject.name', read_only=True)
+    teacher_name = serializers.CharField(source='teacher.get_full_name', read_only=True)
+    
+    class Meta:
+        model = TimetableEntry
+        fields = '__all__'
+
+class StudentAttendanceSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.get_full_name', read_only=True)
+    recorded_by_name = serializers.CharField(source='recorded_by.get_full_name', read_only=True)
+
+    class Meta:
+        model = StudentAttendance
         fields = '__all__'

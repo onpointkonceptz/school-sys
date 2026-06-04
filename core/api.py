@@ -104,20 +104,63 @@ def dashboard_api(request):
             })
 
         elif user.role == CustomUser.Role.TEACHER:
-            from academics.models import SubjectAllocation
+            from academics.models import SubjectAllocation, TimetableEntry, StudentAttendance
+            from staff.models import ExtracurricularRole, Announcement, CalendarEvent
+            from datetime import date as date_obj
+            import datetime
+            
             allocations = SubjectAllocation.objects.filter(teacher=user)
             class_grades = allocations.values_list('class_grade', flat=True).distinct()
+            
+            # Subquery or separate query for student count
             total_students = Student.objects.filter(
                 class_grade__in=class_grades
-            ).exclude(student_status__in=['GRADUATED', 'WITHDRAWN', 'TRANSFERRED']).count()
+            ).exclude(student_status__in=[Student.StudentStatus.GRADUATED, Student.StudentStatus.WITHDRAWN, Student.StudentStatus.TRANSFERRED]).count()
+            
+            # Today's attendance
+            today = date_obj.today()
+            attendance_today = StudentAttendance.objects.filter(
+                student__class_grade__in=class_grades,
+                date=today
+            )
+            present_today = attendance_today.filter(status='PRESENT').count()
+            
+            # Next lesson
+            now = datetime.datetime.now()
+            current_day = now.strftime('%A').upper()
+            try:
+                next_lesson = TimetableEntry.objects.filter(
+                    teacher=user,
+                    day_of_week=current_day,
+                    start_time__gte=now.time()
+                ).order_by('start_time').first()
+            except:
+                next_lesson = None
+                
+            # Extracurricular
+            roles = ExtracurricularRole.objects.filter(teacher=user)
+            
+            # Announcements & Calendar
+            notices = Announcement.objects.filter(is_active=True).order_by('-created_at')[:3]
+            events = CalendarEvent.objects.filter(start_date__gte=today).order_by('start_date')[:3]
+            
             data.update({
                 'section': 'TEACHER',
                 'stats': [
-                    {'label': 'Subjects Taught', 'value': allocations.count(), 'type': 'number', 'color': 'text-navy', 'bg': 'bg-blue-100', 'icon': 'Users'},
-                    {'label': 'Classes', 'value': class_grades.count(), 'type': 'number', 'color': 'text-green-600', 'bg': 'bg-green-100', 'icon': 'TrendingUp'},
-                    {'label': 'My Students', 'value': total_students, 'type': 'number', 'color': 'text-orange', 'bg': 'bg-orange-100', 'icon': 'AlertTriangle'},
+                    {'label': 'Subjects Taught', 'value': allocations.count(), 'type': 'number', 'color': 'text-navy', 'bg': 'bg-blue-100', 'icon': 'BookOpen'},
+                    {'label': 'Classes', 'value': class_grades.count(), 'type': 'number', 'color': 'text-green-600', 'bg': 'bg-green-100', 'icon': 'Layout'},
+                    {'label': 'My Students', 'value': total_students, 'type': 'number', 'color': 'text-orange', 'bg': 'bg-orange-100', 'icon': 'Users'},
+                    {'label': 'Attendance Today', 'value': f"{present_today}/{total_students}" if total_students > 0 else "0/0", 'type': 'text', 'color': 'text-purple-600', 'bg': 'bg-purple-100', 'icon': 'CheckCircle'},
                 ],
                 'teacher_classes': list(class_grades),
+                'next_lesson': {
+                    'subject': next_lesson.subject.name,
+                    'class': next_lesson.class_grade,
+                    'time': next_lesson.start_time.strftime('%H:%M')
+                } if next_lesson else None,
+                'extracurricular_roles': [{'activity': r.activity.name, 'role': r.role_description} for r in roles],
+                'announcements': [{'title': a.title, 'date': a.created_at.strftime('%Y-%m-%d')} for a in notices],
+                'upcoming_events': [{'title': e.title, 'date': e.start_date.strftime('%Y-%m-%d')} for e in events],
                 'message': f'You teach {allocations.count()} subject(s) across {class_grades.count()} class(es).'
             })
 
@@ -134,11 +177,11 @@ def dashboard_api(request):
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 def user_profile_api(request):
     """
-    Get or update the logged-in user's profile
+    Get or update the logged-in user's profile with detailed assignments for teachers.
     """
     user = request.user
     if request.method == 'GET':
-        return Response({
+        data = {
             'id': user.id,
             'username': user.username,
             'email': user.email,
@@ -147,8 +190,44 @@ def user_profile_api(request):
             'role': user.role,
             'role_display': user.get_role_display() if hasattr(user, 'get_role_display') else user.role,
             'phone_number': getattr(user, 'phone_number', ''),
-            'profile_picture': user.profile_picture.url if hasattr(user, 'profile_picture') and user.profile_picture else None
-        })
+            'profile_picture': user.profile_picture.url if hasattr(user, 'profile_picture') and user.profile_picture else None,
+            'assignments': None
+        }
+
+        # For Teachers, include detailed assignments and responsibilities
+        if user.role == 'TEACHER':
+            from academics.models import SubjectAllocation, TimetableEntry
+            from staff.models import ExtracurricularRole, CalendarEvent
+            from datetime import date as date_obj
+
+            allocations = SubjectAllocation.objects.filter(teacher=user)
+            class_grades = allocations.values_list('class_grade', flat=True).distinct()
+            roles = ExtracurricularRole.objects.filter(teacher=user)
+            today = date_obj.today()
+            events = CalendarEvent.objects.filter(start_date__gte=today).order_by('start_date')[:5]
+
+            data['assignments'] = {
+                'subjects': [{'id': a.id, 'name': a.subject.name, 'class': a.class_grade} for a in allocations],
+                'class_grades': list(class_grades),
+                'workload_summary': {
+                    'total_subjects': allocations.count(),
+                    'total_classes': class_grades.count()
+                },
+                'extracurricular': [{'activity': r.activity.name, 'role': r.role_description} for r in roles],
+                'upcoming_events': [{'title': e.title, 'date': e.start_date.strftime('%Y-%m-%d'), 'category': e.category} for e in events]
+            }
+            
+            # Simplified timetable for profile preview
+            data['assignments']['timetable'] = [
+                {
+                    'day': t.day_of_week,
+                    'subject': t.subject.name,
+                    'class': t.class_grade,
+                    'time': t.start_time.strftime('%H:%M')
+                } for t in TimetableEntry.objects.filter(teacher=user).order_by('day_of_week', 'start_time')
+            ]
+
+        return Response(data)
     elif request.method == 'PUT':
         data = request.data
         user.first_name = data.get('first_name', user.first_name)
@@ -230,7 +309,13 @@ def manage_users_api(request, pk=None):
         )
         new_user.set_password(data.get('password', 'password123'))
         new_user.save()
+        
+        # Create a blank StaffProfile to ensure the user shows up in the Staff Directory immediately
+        from staff.models import StaffProfile
+        StaffProfile.objects.get_or_create(user=new_user)
+        
         return Response({'success': True, 'id': new_user.id}, status=201)
+
 
     elif request.method == 'PUT':
         # Update user

@@ -41,7 +41,6 @@ def run():
                     last_name=f"{code}",
                     admission_number=f"{code}/{2025}/{i+1:03d}",
                     class_grade=code,
-                    student_type=random.choice(['DAY', 'BOARDING']),
                     student_status='ACTIVE',
                     date_of_birth=date(2010, 1, 1),
                     gender='MALE' if i % 2 == 0 else 'FEMALE',

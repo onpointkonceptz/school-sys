@@ -916,7 +916,7 @@ const FeeConfigView = () => {
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: '', amount: '', class_grade: '', student_status: '', student_type: '', term: '1st Term', session: '2025/2026'
+        name: '', amount: '', class_grade: '', student_status: '', term: '1st Term', session: '2025/2026'
     });
 
     const fetchFees = async () => {
@@ -936,7 +936,7 @@ const FeeConfigView = () => {
         try {
             await api.post('/fee-structures/', formData);
             setShowModal(false);
-            setFormData({ name: '', amount: '', class_grade: '', student_status: '', student_type: '', term: '1st Term', session: '2025/2026' });
+            setFormData({ name: '', amount: '', class_grade: '', student_status: '', term: '1st Term', session: '2025/2026' });
             fetchFees();
         } catch (err) {
             console.error(err);
@@ -975,7 +975,6 @@ const FeeConfigView = () => {
                             <tr>
                                 <th className="px-6 py-4">Fee Name</th>
                                 <th className="px-4 py-4">Class</th>
-                                <th className="px-4 py-4">Student Type</th>
                                 <th className="px-4 py-4">Status</th>
                                 <th className="px-4 py-4">Term/Session</th>
                                 <th className="px-6 py-4 text-right">Amount (₦)</th>
@@ -987,7 +986,6 @@ const FeeConfigView = () => {
                                 <tr key={fee.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="px-6 py-4 font-bold text-[#001f3f]">{fee.name}</td>
                                     <td className="px-4 py-4 text-gray-600 bg-gray-50/50 font-medium">{fee.class_grade || 'All Classes'}</td>
-                                    <td className="px-4 py-4 text-gray-600">{fee.student_type || 'Any'}</td>
                                     <td className="px-4 py-4 text-gray-600">{fee.student_status || 'Any'}</td>
                                     <td className="px-4 py-4 text-gray-400 text-xs">{fee.term} <br /> {fee.session}</td>
                                     <td className="px-6 py-4 text-right font-mono font-bold text-orange-600">{Number(fee.amount).toLocaleString()}</td>
@@ -1086,18 +1084,6 @@ const FeeConfigView = () => {
                                         <option value="">Any Status</option>
                                         <option value="NEW">New</option>
                                         <option value="RETURNING">Returning</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1">Student Type</label>
-                                    <select
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm outline-none"
-                                        value={formData.student_type}
-                                        onChange={e => setFormData({ ...formData, student_type: e.target.value })}
-                                    >
-                                        <option value="">Any Type</option>
-                                        <option value="DAY">Day</option>
-                                        <option value="BOARDING">Boarding</option>
                                     </select>
                                 </div>
                             </div>

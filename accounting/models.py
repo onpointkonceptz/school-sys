@@ -14,7 +14,7 @@ class FeeStructure(models.Model):
     # Criteria
     class_grade = models.CharField(max_length=20, choices=Student.ClassGrade.choices, null=True, blank=True, help_text="Leave blank if applies to all classes")
     student_status = models.CharField(max_length=20, choices=Student.StudentStatus.choices, null=True, blank=True, help_text="New vs Returning")
-    student_type = models.CharField(max_length=20, choices=Student.StudentType.choices, null=True, blank=True, help_text="Day vs Boarding")
+
     
     term = models.CharField(max_length=50, default='1st Term')
     session = models.CharField(max_length=50, default='2025/2026')
@@ -63,7 +63,6 @@ class Transaction(models.Model):
 
     class PaymentType(models.TextChoices):
         TUITION = 'TUITION', 'Tuition Fees'
-        BOARDING = 'BOARDING', 'Boarding Fees'
         ADMISSION = 'ADMISSION', 'Admission Fees'
         PTA = 'PTA', 'PTA Levey'
         EXAM = 'EXAM', 'Exam Fees'

@@ -22,12 +22,14 @@ from django.conf.urls.static import static
 from core import views as core_views
 from core import api as core_api
 
+from django.views.decorators.csrf import csrf_exempt
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', core_views.react_app, name='dashboard'),   # Serve React App
     path('api/dashboard/', core_api.dashboard_api, name='dashboard_api'),
-    path('api/login/', core_api.login_api, name='login_api'),
+    path('api/login/', csrf_exempt(core_api.login_api), name='login_api'),
     path('api/logout/', core_api.logout_api, name='logout_api'),
     
     # User Profile & Management
@@ -39,6 +41,7 @@ urlpatterns = [
     # Module APIs
     path('api/students/', include('students.urls')),
     path('api/inventory/', include('inventory.urls')),
+    path('api/staff/', include('staff.urls')),
     path('api/accounts/', include('accounting.urls')),
     path('api/academics/', include('academics.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

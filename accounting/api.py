@@ -27,13 +27,12 @@ def transaction_list(request):
 def get_fee_config(request):
     """
     Returns the calculated fee for a given student configuration
-    Query params: class_grade, student_type, student_status
+    Query params: class_grade, student_status
     """
     class_grade = request.query_params.get('class_grade')
-    student_type = request.query_params.get('student_type')
     student_status = request.query_params.get('student_status')
     
-    if not all([class_grade, student_type, student_status]):
+    if not all([class_grade, student_status]):
         return Response({'amount': 0, 'breakdown': []})
 
     # Find matching fees
@@ -48,8 +47,7 @@ def get_fee_config(request):
     
     fees = FeeStructure.objects.filter(
         class_grade__in=[class_grade, None, ''],
-        student_status__in=[student_status, None, ''],
-        student_type__in=[student_type, None, '']
+        student_status__in=[student_status, None, '']
     )
     
     total = sum(f.amount for f in fees)
@@ -77,7 +75,6 @@ def manage_fee_structures(request, pk=None):
             'amount': str(f.amount),
             'class_grade': f.class_grade,
             'student_status': f.student_status,
-            'student_type': f.student_type,
             'term': f.term,
             'session': f.session,
         } for f in fees]
@@ -99,7 +96,6 @@ def manage_fee_structures(request, pk=None):
         # Handle empty strings as None for nullable choice fields
         fee.class_grade = data.get('class_grade') or None
         fee.student_status = data.get('student_status') or None
-        fee.student_type = data.get('student_type') or None
         
         fee.term = data.get('term', '1st Term')
         fee.session = data.get('session', '2025/2026')
@@ -160,8 +156,7 @@ def record_payment(request):
              # Calculate based on student profile
              fees = FeeStructure.objects.filter(
                 class_grade__in=[student.class_grade, None, ''],
-                student_status__in=[student.student_status, None, ''],
-                student_type__in=[student.student_type, None, '']
+                student_status__in=[student.student_status, None, '']
              )
              student_fee.total_amount_payable = sum(f.amount for f in fees)
         

@@ -42,11 +42,13 @@ const Login = ({ onLogin }) => {
                 <div className="p-8 text-center bg-gray-50 border-b border-gray-100">
                     <img
                         src="https://kadwelinternationalschools.com/assets/img/logo.png"
-                        alt="KADWEL Logo"
+                        alt="Kadwel School Logo"
                         className="w-20 h-20 mx-auto mb-4 object-contain bg-white rounded-full p-1"
                     />
-                    <h2 className="text-2xl font-bold text-[#001f3f]">Welcome Back</h2>
-                    <p className="text-gray-500 text-sm">Sign in to KADWEL Portal</p>
+                    <h2 className="text-3xl font-black text-[#001f3f] tracking-tight">Welcome Back</h2>
+                    <p className="text-gray-500 text-sm font-medium mt-2">
+                        Sign in to <span className="text-[#001f3f] font-bold">Kadwel School</span> Portal
+                    </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">

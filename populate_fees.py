@@ -22,7 +22,6 @@ def create_fees():
         defaults={
             'amount': Decimal('85000.00'),
             'class_grade': None, # Applies to generic unless specific
-            'student_type': Student.StudentType.DAY,
             'term': term, 'session': session
         }
     )
@@ -32,20 +31,11 @@ def create_fees():
         name='SS Tuition (Day)',
         defaults={
             'amount': Decimal('95000.00'),
-            'student_type': Student.StudentType.DAY,
             'term': term, 'session': session
         }
     )
     
-    # Boarding Fee (All Classes)
-    FeeStructure.objects.get_or_create(
-        name='Boarding Fee',
-        defaults={
-            'amount': Decimal('150000.00'),
-            'student_type': Student.StudentType.BOARDING,
-            'term': term, 'session': session
-        }
-    )
+
     
     # New Student Acceptance Fee
     FeeStructure.objects.get_or_create(

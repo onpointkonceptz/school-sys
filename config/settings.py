@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'inventory',
     'accounting',
     'academics',
+    'staff',
 ]
 
 MIDDLEWARE = [
@@ -149,6 +150,10 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://adashingn-306cc.web.app',
+    'https://adashingn-306cc.firebaseapp.com',
 ]
 if _prod_origin:
     # Ensure it's split by comma if user accidentally pasted multiple, and enforce https://

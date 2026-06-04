@@ -15,8 +15,7 @@ def run():
             session="2025/2026",
             defaults={
                 'amount': 100000.00,
-                'student_status': None, # Applies to all statuses
-                'student_type': None    # Applies to all types
+                'student_status': None # Applies to all statuses
             }
         )
         if created:
@@ -39,7 +38,6 @@ def run():
         applicable_fees = FeeStructure.objects.filter(
             class_grade__in=[student.class_grade, None, ''],
             student_status__in=[student.student_status, None, ''],
-            student_type__in=[student.student_type, None, ''],
             term=sf.term,
             session=sf.session
         )

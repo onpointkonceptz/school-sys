@@ -174,7 +174,7 @@ export const Students = ({ onNavigate, navData, user }) => {
     // Form State for Add/Edit
     const initialFormState = {
         first_name: '', last_name: '', admission_number: '',
-        class_grade: 'JSS_1', student_type: 'DAY', student_status: 'NEW',
+        class_grade: 'JSS_1', student_status: 'NEW',
         parent_name: '', parent_phone: '', parent_email: '', parent_address: '',
         current_term: '1st Term', current_session: '2025/2026',
         // New Fields
@@ -216,7 +216,7 @@ export const Students = ({ onNavigate, navData, user }) => {
         if (showAddModal || editingStudent) {
             calculateFees();
         }
-    }, [formData.class_grade, formData.student_type, formData.student_status, showAddModal, editingStudent]);
+    }, [formData.class_grade, formData.student_status, showAddModal, editingStudent]);
 
     // Global Search Effect
     useEffect(() => {
@@ -279,7 +279,6 @@ export const Students = ({ onNavigate, navData, user }) => {
         try {
             const params = {
                 class_grade: formData.class_grade,
-                student_type: formData.student_type,
                 student_status: formData.student_status
             };
             const res = await api.get('/accounts/fee-config/', { params });
@@ -328,7 +327,6 @@ export const Students = ({ onNavigate, navData, user }) => {
                 last_name: s.last_name,
                 admission_number: s.admission_number,
                 class_grade: s.class_grade, // Note: This might need mapping if API returns display vs code
-                student_type: s.student_type,
                 student_status: s.student_status,
                 parent_name: s.parent_name,
                 parent_phone: s.parent_phone,
@@ -521,7 +519,6 @@ export const Students = ({ onNavigate, navData, user }) => {
             <td className="px-6 py-4">
                 <div className="flex flex-col gap-1">
                     <span className="text-xs font-semibold text-gray-700">{s.class_grade}</span>
-                    <span className="text-xs text-gray-500">{s.student_type}</span>
                 </div>
             </td>
             <td className="px-6 py-4">
@@ -691,17 +688,6 @@ export const Students = ({ onNavigate, navData, user }) => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="bg-[#ff851b]/5 rounded-xl p-3 text-center border border-orange/10">
-                                                <div className="text-xs text-[#ff851b] font-bold uppercase mb-1">Boarding</div>
-                                                <div className="text-xl font-black text-[#001f3f]">{stats.boarding}</div>
-                                            </div>
-                                            <div className="bg-blue-50/50 rounded-xl p-3 text-center border border-blue-100/50">
-                                                <div className="text-xs text-blue-600 font-bold uppercase mb-1">Day</div>
-                                                <div className="text-xl font-black text-[#001f3f]">{stats.day}</div>
-                                            </div>
-                                        </div>
-
                                         <div>
                                             <div className="flex justify-between text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">
                                                 <span>Fee Compliance</span>
@@ -932,13 +918,6 @@ export const Students = ({ onNavigate, navData, user }) => {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">New Class</label>
                                                     <select name="class_grade" value={formData.class_grade} onChange={handleInputChange} className="w-full p-2.5 rounded-lg border border-gray-200 focus:border-navy focus:ring-1 focus:ring-navy outline-none font-bold bg-[#ff851b]/5 text-[#001f3f]">
                                                         {classStats.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Boarding Status</label>
-                                                    <select name="student_type" value={formData.student_type} onChange={handleInputChange} className="w-full p-2.5 rounded-lg border border-gray-200 focus:border-navy focus:ring-1 focus:ring-navy outline-none">
-                                                        <option value="DAY">Day Student</option>
-                                                        <option value="BOARDING">Boarding Student</option>
                                                     </select>
                                                 </div>
                                                 <div>
@@ -1612,7 +1591,6 @@ const PromoteClassModal = ({ onClose, onSuccess, classStats }) => {
                                                     />
                                                 </th>
                                                 <th className="px-4 py-3 text-left">Student</th>
-                                                <th className="px-4 py-3 text-center">Type</th>
                                                 <th className="px-4 py-3 text-center">Grade Status</th>
                                             </tr>
                                         </thead>
@@ -1630,11 +1608,6 @@ const PromoteClassModal = ({ onClose, onSuccess, classStats }) => {
                                                     <td className="px-4 py-3">
                                                         <div className="font-bold text-[#001f3f]">{s.full_name}</div>
                                                         <div className="text-xs text-gray-400 font-mono">{s.admission_number}</div>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-center">
-                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.student_type === 'BOARDING' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                                                            {s.student_type}
-                                                        </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-center">
                                                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusBadge(s.grade_status)}`}>

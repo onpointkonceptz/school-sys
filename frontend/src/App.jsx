@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import Login from './Login'
 import Dashboard from './Dashboard'
+import Staff from './Staff'
 import { Students, Inventory, Accounts, Academics, UserManagement } from './Pages'
-import { LayoutDashboard, Users, Package, FileText, LogOut, BookOpen, Settings as SettingsIcon, Camera, Key, User as UserIcon, X, CheckCircle, UserCog, ChevronDown } from 'lucide-react'
+import TeacherProfile from './TeacherProfile'
+import { LayoutDashboard, Users, Package, FileText, LogOut, BookOpen, Settings as SettingsIcon, Camera, Key, User as UserIcon, X, CheckCircle, UserCog, ChevronDown, Briefcase, UserCheck } from 'lucide-react'
 import axios from 'axios';
 
 function App() {
@@ -59,8 +61,10 @@ function App() {
       case 'Students': return <Students onNavigate={handleNavigate} navData={navData} user={user} />;
       case 'Inventory': return <Inventory />;
       case 'Accounts': return <Accounts onNavigate={handleNavigate} />;
-      case 'Academics': return <Academics />;
-      case 'Staff': return <UserManagement user={user} />;
+      case 'Academics': return <Academics user={user} navData={navData} />;
+      case 'Staff': return <Staff user={user} onNavigate={handleNavigate} />;
+      case 'System': return <UserManagement user={user} />;
+      case 'TeacherProfile': return <TeacherProfile user={user} onAction={handleNavigate} />;
       default: return <Dashboard onNavigate={handleNavigate} user={user} />;
     }
   };
@@ -72,11 +76,12 @@ function App() {
         <div className="p-6 flex flex-col items-center text-center">
           <img
             src="https://kadwelinternationalschools.com/assets/img/logo.png"
-            alt="KADWEL Logo"
+            alt="Kadwel School Logo"
             className="w-20 h-20 mb-3 object-contain bg-white rounded-full p-1"
           />
-          <h2 className="text-lg font-bold text-orange-400 tracking-tight leading-tight">
-            KADWEL <br /><span className="text-white text-sm font-normal">International Schools</span>
+          <h2 className="flex flex-col items-center">
+            <span className="text-4xl font-black text-orange-400 tracking-tighter leading-none uppercase">Kadwel</span>
+            <span className="text-white text-xs font-light tracking-[0.3em] uppercase mt-1">SCHOOL</span>
           </h2>
           <div className="mt-4 px-3 py-1 bg-white/10 rounded-full text-xs text-orange-400 font-mono uppercase tracking-widest border border-white/20">
             {user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role === 'ACCOUNT_OFFICER' ? 'Bursar' : user.role || 'User'} Portal
@@ -98,9 +103,16 @@ function App() {
             <NavItem icon={BookOpen} label="Academics" active={activeTab === 'Academics'} onClick={() => setActiveTab('Academics')} />
           )}
 
+          {user.role === 'TEACHER' && (
+            <NavItem icon={UserCheck} label="My Profile" active={activeTab === 'TeacherProfile'} onClick={() => setActiveTab('TeacherProfile')} />
+          )}
+
           {/* Admin Tools - Manage Users */}
           {(['PRINCIPAL', 'SUPER_ADMIN'].includes(user.role) || user.is_superuser) && (
-            <NavItem icon={UserCog} label="System Users" active={activeTab === 'Staff'} onClick={() => setActiveTab('Staff')} />
+            <>
+              <NavItem icon={Briefcase} label="Staff Management" active={activeTab === 'Staff'} onClick={() => setActiveTab('Staff')} />
+              <NavItem icon={UserCog} label="System Users" active={activeTab === 'System'} onClick={() => setActiveTab('System')} />
+            </>
           )}
         </nav>
 
@@ -136,8 +148,11 @@ function App() {
             {/* Dropdown Menu */}
             <div className="absolute right-0 top-[60px] w-56 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:mt-1 transition-all transform origin-top-right z-50">
               <div className="p-2">
-                <button onClick={() => setShowProfile(true)} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#001f3f] rounded-lg transition-colors">
-                  <UserIcon size={18} /> Profile Settings
+                <button
+                  onClick={() => user.role === 'TEACHER' ? setActiveTab('TeacherProfile') : setShowProfile(true)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#001f3f] rounded-lg transition-colors"
+                >
+                  <UserIcon size={18} /> {user.role === 'TEACHER' ? 'My Profile' : 'Profile Settings'}
                 </button>
                 <button onClick={() => { setShowProfile(true); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#001f3f] rounded-lg transition-colors">
                   <Key size={18} /> Change Password

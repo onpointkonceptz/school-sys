@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     BookOpen, Users, Edit3, Save, CheckCircle, Search, Filter, X,
-    User, CreditCard, ChevronRight, ArrowLeft, GraduationCap, LayoutDashboard, PlusCircle, Settings, Trash2, MoreVertical
+    User, CreditCard, ChevronRight, ArrowLeft, GraduationCap, LayoutDashboard, PlusCircle, Settings, Trash2, MoreVertical,
+    Calendar, ClipboardList, Settings2, History, Download, Upload, FileText, Clock, UserCheck, Trophy, ClipboardCheck, Briefcase as ECIcon
 } from 'lucide-react';
 
 // Configure Axios
@@ -20,13 +21,17 @@ api.interceptors.request.use(config => {
 });
 
 
-const Academics = ({ user }) => {
+const Academics = ({ user, navData }) => {
     // Only Teachers have write access to Academics (grades, subjects, reports)
     // Other roles (Principal, Super Admin, etc) are read-only
     const readOnly = user?.role !== 'TEACHER';
 
-    // VIEWS: DASHBOARD -> CLASS_GRADEBOOK
+    // VIEWS: DASHBOARD -> CLASS_GRADEBOOK, LESSON_PLANS, TIMETABLE, ATTENDANCE, EXTRACURRICULAR, ADMIN
     const [view, setView] = useState('DASHBOARD');
+    const [lessonPlans, setLessonPlans] = useState([]);
+    const [timetable, setTimetable] = useState([]);
+    const [ecActivities, setEcActivities] = useState([]);
+    const [ecRoles, setEcRoles] = useState([]);
 
     // Data State
     const [stats, setStats] = useState([]);
@@ -56,8 +61,11 @@ const Academics = ({ user }) => {
 
     // Fetch Stats & Allocations on Mount
     useEffect(() => {
+        if (navData?.tab) {
+            setView(navData.tab);
+        }
         fetchData();
-    }, []);
+    }, [navData]);
 
     const fetchData = async () => {
         try {
@@ -73,10 +81,45 @@ const Academics = ({ user }) => {
             setGradingScales(scalesRes.data);
             setAllSubjects(subRes.data);
 
+            // New: Fetch Lesson Plans and Timetable if needed
+            fetchLessonPlans();
+            fetchExtracurricularData();
+
         } catch (error) {
             console.error("Failed to fetch academic data", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchLessonPlans = async () => {
+        try {
+            const res = await api.get('/academics/lesson-plans/');
+            setLessonPlans(res.data);
+        } catch (error) {
+            console.error("Failed to fetch lesson plans", error);
+        }
+    };
+
+    const fetchTimetable = async (classCode) => {
+        try {
+            const res = await api.get(`/academics/timetable/?class_grade=${classCode}`);
+            setTimetable(res.data);
+        } catch (error) {
+            console.error("Failed to fetch timetable", error);
+        }
+    };
+
+    const fetchExtracurricularData = async () => {
+        try {
+            const [activitiesRes, rolesRes] = await Promise.all([
+                api.get('/staff/extracurricular-activities/'),
+                api.get('/staff/teacher-extracurricular-roles/')
+            ]);
+            setEcActivities(activitiesRes.data);
+            setEcRoles(rolesRes.data);
+        } catch (error) {
+            console.error("Failed to fetch extracurricular data", error);
         }
     };
 
@@ -179,7 +222,54 @@ const Academics = ({ user }) => {
         <div className="p-8 space-y-8 bg-gray-50 min-h-screen">
             <header className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div>
-                    <h1 className="text-3xl font-black text-[#001f3f] tracking-tight">Academic Records</h1>
+                    <div className="flex items-center gap-1 bg-white/50 p-1 rounded-xl border border-gray-100 backdrop-blur-sm mr-auto ml-12">
+                        <button
+                            onClick={() => setView('DASHBOARD')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${view === 'DASHBOARD' ? 'bg-[#001f3f] text-white shadow-lg shadow-navy/20' : 'text-[#001f3f]/60 hover:bg-white'}`}
+                        >
+                            <LayoutDashboard size={18} />
+                            Dashboard
+                        </button>
+                        <button
+                            onClick={() => setView('LESSON_PLANS')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${view === 'LESSON_PLANS' ? 'bg-[#001f3f] text-white shadow-lg shadow-navy/20' : 'text-[#001f3f]/60 hover:bg-white'}`}
+                        >
+                            <ClipboardList size={18} />
+                            Lesson Plans
+                        </button>
+                        <button
+                            onClick={() => setView('TIMETABLE')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${view === 'TIMETABLE' ? 'bg-[#001f3f] text-white shadow-lg shadow-navy/20' : 'text-[#001f3f]/60 hover:bg-white'}`}
+                        >
+                            <Calendar size={18} />
+                            Timetable
+                        </button>
+                        <button
+                            onClick={() => setView('ATTENDANCE')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${view === 'ATTENDANCE' ? 'bg-[#001f3f] text-white shadow-lg shadow-navy/20' : 'text-[#001f3f]/60 hover:bg-white'}`}
+                        >
+                            <UserCheck size={18} />
+                            Attendance
+                        </button>
+                        <button
+                            onClick={() => setView('EXTRACURRICULAR')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${view === 'EXTRACURRICULAR' ? 'bg-[#001f3f] text-white shadow-lg shadow-navy/20' : 'text-[#001f3f]/60 hover:bg-white'}`}
+                        >
+                            <Trophy size={18} />
+                            Extracurricular
+                        </button>
+                        {user?.role === 'SUPER_ADMIN' && (
+                            <button
+                                onClick={() => setView('ADMIN')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${view === 'ADMIN' ? 'bg-[#ff851b] text-white shadow-lg shadow-orange/20' : 'text-[#001f3f]/60 hover:bg-white'}`}
+                            >
+                                <Settings2 size={18} />
+                                Admin
+                            </button>
+                        )}
+                    </div>
+
+                    <h1 className="text-3xl font-black text-[#001f3f] tracking-tight ml-auto">Academic Records</h1>
                     <p className="text-gray-500 mt-1">
                         {view === 'DASHBOARD' && "Manage classes, subjects, and grading."}
                         {view === 'CLASS_GRADEBOOK' && (
@@ -263,16 +353,6 @@ const Academics = ({ user }) => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="bg-[#ff851b]/5 rounded-xl p-3 text-center border border-orange/10">
-                                                <div className="text-xs text-[#ff851b] font-bold uppercase mb-1">Boarding</div>
-                                                <div className="text-xl font-black text-[#001f3f]">{stat.boarding}</div>
-                                            </div>
-                                            <div className="bg-blue-50/50 rounded-xl p-3 text-center border border-blue-100/50">
-                                                <div className="text-xs text-blue-600 font-bold uppercase mb-1">Day</div>
-                                                <div className="text-xl font-black text-[#001f3f]">{stat.day}</div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -365,6 +445,49 @@ const Academics = ({ user }) => {
                                     )}
                                 </div>
                             )}
+                        </div>
+                    )}
+                    {/* LEVEL 4: LESSON PLANS */}
+                    {view === 'LESSON_PLANS' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4">
+                            <LessonPlansView plans={lessonPlans} onRefresh={fetchLessonPlans} user={user} allSubjects={allSubjects} />
+                        </div>
+                    )}
+
+                    {/* LEVEL 5: TIMETABLE */}
+                    {view === 'TIMETABLE' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4">
+                            <TimetableView timetable={timetable} onRefresh={fetchTimetable} user={user} allSubjects={allSubjects} />
+                        </div>
+                    )}
+
+                    {/* LEVEL 7: ATTENDANCE */}
+                    {view === 'ATTENDANCE' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4">
+                            <StudentAttendanceView
+                                user={user}
+                                allocations={allocations}
+                                stats={stats}
+                            />
+                        </div>
+                    )}
+
+                    {/* LEVEL 8: EXTRACURRICULAR */}
+                    {view === 'EXTRACURRICULAR' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4">
+                            <ExtracurricularView
+                                user={user}
+                                activities={ecActivities}
+                                roles={ecRoles}
+                                onRefresh={fetchExtracurricularData}
+                            />
+                        </div>
+                    )}
+
+                    {/* LEVEL 6: ADMIN MANAGEMENT */}
+                    {view === 'ADMIN' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4">
+                            <AdminManagementView user={user} allSubjects={allSubjects} allocations={allocations} setAllocations={setAllocations} onRefresh={fetchData} />
                         </div>
                     )}
 
@@ -727,7 +850,6 @@ const ClassRosterCard = ({ students, loading, className, onOpenProfile }) => {
                                     <th className="px-4 py-3">#</th>
                                     <th className="px-4 py-3">Student Name</th>
                                     <th className="px-4 py-3">Admission No.</th>
-                                    <th className="px-4 py-3 text-center">Type</th>
                                     <th className="px-4 py-3 text-center">Status</th>
                                     <th className="px-4 py-3 text-center">Fees</th>
                                     <th className="px-4 py-3 text-right">Balance (₦)</th>
@@ -747,11 +869,6 @@ const ClassRosterCard = ({ students, loading, className, onOpenProfile }) => {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 font-mono text-xs text-gray-500">{s.admission_number}</td>
-                                        <td className="px-4 py-3 text-center">
-                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.is_boarding ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                                                {s.student_type}
-                                            </span>
-                                        </td>
                                         <td className="px-4 py-3 text-center">
                                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusColor(s.student_status)}`}>
                                                 {s.student_status}
@@ -812,6 +929,13 @@ const GradebookView = ({ allocation, onOpenProfile, gradingScales, readOnly }) =
         const updatedStudents = [...students];
         const student = updatedStudents[index];
 
+        if (field === 'grade') {
+            student.grade = value.toUpperCase();
+            setStudents(updatedStudents);
+            setHasChanges(true);
+            return;
+        }
+
         const maxScores = { test_score: 20, assignment_score: 10, midterm_score: 20, exam_score: 50 };
         let numValue = parseFloat(value) || 0;
         if (numValue < 0) numValue = 0;
@@ -819,14 +943,15 @@ const GradebookView = ({ allocation, onOpenProfile, gradingScales, readOnly }) =
 
         student[field] = numValue;
 
-        const total =
-            parseFloat(student.test_score || 0) +
-            parseFloat(student.assignment_score || 0) +
-            parseFloat(student.midterm_score || 0) +
-            parseFloat(student.exam_score || 0);
+        const ca = parseFloat(student.test_score || 0) + parseFloat(student.assignment_score || 0) + parseFloat(student.midterm_score || 0);
+        student.ca_score = ca;
 
+        const total = ca + parseFloat(student.exam_score || 0);
         student.total_score = total;
 
+        // Auto-calculate grade only if it was empty or not manually set before
+        // For simplicity in this UI, we auto-calculate on score change. 
+        // If they want to override, they can change the grade field after.
         const { grade, remark } = calculateGrade(total);
         student.grade = grade;
         student.remark = remark;
@@ -846,6 +971,7 @@ const GradebookView = ({ allocation, onOpenProfile, gradingScales, readOnly }) =
                     assignment_score: s.assignment_score,
                     midterm_score: s.midterm_score,
                     exam_score: s.exam_score,
+                    grade: s.grade, // Manual/Calculated Grade
                     term: '1st Term',
                     remark: s.remark
                 }))
@@ -898,6 +1024,7 @@ const GradebookView = ({ allocation, onOpenProfile, gradingScales, readOnly }) =
                             <th className="px-4 py-4 w-24 text-center">Test (20)</th>
                             <th className="px-4 py-4 w-24 text-center">Assign (10)</th>
                             <th className="px-4 py-4 w-24 text-center">MidTerm (20)</th>
+                            <th className="px-4 py-4 w-24 text-center bg-orange-50/50">CA (50)</th>
                             <th className="px-4 py-4 w-24 text-center">Exam (50)</th>
                             <th className="px-6 py-4 w-24 text-center bg-gray-50">Total</th>
                             <th className="px-6 py-4 w-20 text-center bg-gray-50">Grade</th>
@@ -919,10 +1046,24 @@ const GradebookView = ({ allocation, onOpenProfile, gradingScales, readOnly }) =
                                 <td className="px-4 py-3"><input disabled={readOnly} type="number" className="w-full text-center p-2 border rounded bg-white disabled:bg-transparent disabled:border-transparent disabled:font-medium disabled:text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none transition" value={student.test_score} onChange={(e) => handleScoreChange(idx, 'test_score', e.target.value)} /></td>
                                 <td className="px-4 py-3"><input disabled={readOnly} type="number" className="w-full text-center p-2 border rounded bg-white disabled:bg-transparent disabled:border-transparent disabled:font-medium disabled:text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none transition" value={student.assignment_score} onChange={(e) => handleScoreChange(idx, 'assignment_score', e.target.value)} /></td>
                                 <td className="px-4 py-3"><input disabled={readOnly} type="number" className="w-full text-center p-2 border rounded bg-white disabled:bg-transparent disabled:border-transparent disabled:font-medium disabled:text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none transition" value={student.midterm_score} onChange={(e) => handleScoreChange(idx, 'midterm_score', e.target.value)} /></td>
+                                <td className="px-4 py-3 text-center font-bold text-orange-600 bg-orange-50/30">
+                                    {((parseFloat(student.test_score) || 0) + (parseFloat(student.assignment_score) || 0) + (parseFloat(student.midterm_score) || 0)).toFixed(1)}
+                                </td>
                                 <td className="px-4 py-3"><input disabled={readOnly} type="number" className="w-full text-center p-2 border rounded bg-white disabled:bg-transparent disabled:border-transparent disabled:font-medium disabled:text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none transition" value={student.exam_score} onChange={(e) => handleScoreChange(idx, 'exam_score', e.target.value)} /></td>
-                                <td className="px-6 py-3 text-center font-bold text-[#001f3f]">{student.total_score}</td>
-                                <td className={`px-6 py-3 text-center font-bold ${student.grade === 'F' ? 'text-red-500' : 'text-green-600'}`}>{student.grade}</td>
-                                <td className="px-6 py-3"><input disabled={readOnly} type="text" className="w-full p-2 border rounded text-xs bg-white disabled:bg-transparent disabled:border-transparent disabled:font-medium disabled:text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none transition" value={student.remark || ''} onChange={(e) => handleScoreChange(idx, 'remark', e.target.value)} /></td>
+                                <td className="px-6 py-3 text-center font-bold text-[#001f3f] bg-gray-50/50">{student.total_score}</td>
+                                <td className="px-4 py-3 bg-gray-50/50">
+                                    <select
+                                        disabled={readOnly}
+                                        value={student.grade}
+                                        onChange={(e) => handleScoreChange(idx, 'grade', e.target.value)}
+                                        className={`w-full text-center p-1 rounded font-bold border-none bg-transparent cursor-pointer hover:bg-white transition ${student.grade === 'F' ? 'text-red-500' : 'text-green-600'}`}
+                                    >
+                                        {['A', 'B', 'C', 'D', 'E', 'F'].map(g => (
+                                            <option key={g} value={g}>{g}</option>
+                                        ))}
+                                    </select>
+                                </td>
+                                <td className="px-6 py-3 bg-gray-50/50"><input disabled={readOnly} type="text" className="w-full p-2 border rounded text-xs bg-white disabled:bg-transparent disabled:border-transparent disabled:font-medium disabled:text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none transition" value={student.remark || ''} onChange={(e) => handleScoreChange(idx, 'remark', e.target.value)} /></td>
                             </tr>
                         ))}
                     </tbody>
@@ -1005,10 +1146,35 @@ const ProfileModal = ({ viewProfile, setViewProfile, transactions, reportInput, 
                     {/* ACADEMICS TAB */}
                     {viewProfile.tab === 'ACADEMICS' && viewProfile.report && (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="bg-white p-4 rounded border"><div className="text-xs text-gray-500">Total</div><div className="text-2xl font-bold">{viewProfile.report.summary.total_score}</div></div>
-                                <div className="bg-white p-4 rounded border"><div className="text-xs text-gray-500">Average</div><div className="text-2xl font-bold">{viewProfile.report.summary.average}%</div></div>
-                                <div className="bg-white p-4 rounded border"><div className="text-xs text-gray-500">Subjects</div><div className="text-2xl font-bold">{viewProfile.report.summary.subjects_offered}</div></div>
+                            <div className="flex justify-between items-center mb-2">
+                                <h4 className="font-bold text-[#001f3f]">Performance Summary</h4>
+                                <button
+                                    onClick={() => window.open(`/api/academics/report/export/?student_id=${viewProfile.id}`, '_blank')}
+                                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-bold hover:bg-orange-700 transition flex items-center gap-2"
+                                >
+                                    <CreditCard size={16} /> {/* Using CreditCard icon for Download as a placeholder if no Download icon */}
+                                    Download PDF Report
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
+                                    <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Total Score</div>
+                                    <div className="text-2xl font-black text-[#001f3f]">{viewProfile.report.summary.total_score}</div>
+                                </div>
+                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
+                                    <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Average</div>
+                                    <div className="text-2xl font-black text-[#001f3f]">{viewProfile.report.summary.average}%</div>
+                                </div>
+                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
+                                    <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Position</div>
+                                    <div className="text-2xl font-black text-orange-600">
+                                        {viewProfile.report.summary.position} <span className="text-xs text-gray-400 font-normal">/ {viewProfile.report.summary.class_total}</span>
+                                    </div>
+                                </div>
+                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
+                                    <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Subjects</div>
+                                    <div className="text-2xl font-black text-[#001f3f]">{viewProfile.report.summary.subjects_offered}</div>
+                                </div>
                             </div>
                             <table className="w-full text-sm bg-white rounded border">
                                 <thead className="bg-gray-50 font-bold"><tr><th className="p-3">Subject</th><th className="p-3 text-center">Total</th><th className="p-3 text-center">Grade</th><th className="p-3 font-normal">Remark</th></tr></thead>
@@ -1044,13 +1210,586 @@ const ProfileModal = ({ viewProfile, setViewProfile, transactions, reportInput, 
                                 </div>
                             </div>
                             <div className="text-right">
-                                <button onClick={async () => { await api.post('/academics/save-student-report/', { student_id: viewProfile.id, ...reportInput }); alert('Saved!'); }} className="px-6 py-3 bg-[#001f3f] text-white rounded-xl font-bold shadow-lg hover:bg-[#001f3f]-light">Save Report Entry</button>
+                                <button onClick={async () => { await api.post('/academics/report/save/', { student_id: viewProfile.id, ...reportInput }); alert('Saved!'); }} className="px-6 py-3 bg-[#001f3f] text-white rounded-xl font-bold shadow-lg hover:bg-[#001f3f]-light">Save Report Entry</button>
                             </div>
                         </div>
                     )}
 
                 </div>
             </div>
+        </div>
+    );
+};
+
+// --- SUB-COMPONENTS ---
+
+const LessonPlansView = ({ plans, onRefresh, user, allSubjects }) => {
+    const [showModal, setShowModal] = useState(false);
+    const [editingPlan, setEditingPlan] = useState(null);
+    const [history, setHistory] = useState([]);
+    const [showHistory, setShowHistory] = useState(false);
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        if (editingPlan) data.id = editingPlan.id;
+
+        try {
+            await api.post('/academics/lesson-plans/save/', data);
+            setShowModal(false);
+            setEditingPlan(null);
+            onRefresh();
+        } catch (err) {
+            alert("Error saving lesson plan");
+        }
+    };
+
+    const viewHistory = async (id) => {
+        const res = await api.get(`/academics/lesson-plans/${id}/history/`);
+        setHistory(res.data);
+        setShowHistory(true);
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-[#001f3f] flex items-center gap-2">
+                    <ClipboardList className="text-orange-500" /> Lesson Plans
+                </h2>
+                <button onClick={() => { setEditingPlan(null); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-[#001f3f] text-white rounded-xl font-bold shadow-lg hover:bg-orange-600 transition">
+                    <PlusCircle size={18} /> Create New Plan
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {plans.map(plan => (
+                    <div key={plan.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                {plan.subject_name}
+                            </div>
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => viewHistory(plan.id)} className="p-2 text-gray-400 hover:text-blue-500"><History size={16} /></button>
+                                <button onClick={() => { setEditingPlan(plan); setShowModal(true); }} className="p-2 text-gray-400 hover:text-orange-500"><Edit3 size={16} /></button>
+                                <button onClick={async () => { if (confirm('Delete?')) { await api.delete(`/academics/lesson-plans/${plan.id}/delete/`); onRefresh(); } }} className="p-2 text-gray-400 hover:text-red-500"><Trash2 size={16} /></button>
+                            </div>
+                        </div>
+                        <h3 className="font-bold text-[#001f3f] text-lg mb-2">{plan.title}</h3>
+                        <p className="text-sm text-gray-500 line-clamp-2 mb-4">{plan.objectives}</p>
+                        <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold border-t pt-4">
+                            <div className="flex items-center gap-1 uppercase tracking-wider"><Users size={12} /> {plan.class_grade}</div>
+                            <div className="flex items-center gap-1 uppercase tracking-wider"><Clock size={12} /> {plan.date}</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Create/Edit Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-8 border-b flex justify-between items-center bg-gray-50">
+                            <h2 className="text-2xl font-black text-[#001f3f]">{editingPlan ? 'Edit Lesson Plan' : 'Create Lesson Plan'}</h2>
+                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition"><X size={24} /></button>
+                        </div>
+                        <form onSubmit={handleSave} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Subject</label>
+                                    <select name="subject" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition" defaultValue={editingPlan?.subject}>
+                                        {allSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Class</label>
+                                    <select name="class_grade" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition" defaultValue={editingPlan?.class_grade}>
+                                        {['JSS_1', 'JSS_2', 'JSS_3', 'SS_1', 'SS_2', 'SS_3'].map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Title</label>
+                                <input name="title" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl" placeholder="e.g. Introduction to Algebra" defaultValue={editingPlan?.title} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Objectives</label>
+                                <textarea name="objectives" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl" rows="3" defaultValue={editingPlan?.objectives} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Activities</label>
+                                <textarea name="activities" className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl" rows="3" defaultValue={editingPlan?.activities} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Date</label>
+                                    <input type="date" name="date" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl" defaultValue={editingPlan?.date} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Support File</label>
+                                    <input type="file" name="support_file" className="w-full text-sm" />
+                                </div>
+                            </div>
+                            <button type="submit" className="w-full py-4 bg-[#001f3f] text-white rounded-2xl font-black text-lg shadow-xl hover:bg-orange-600 transition-all active:scale-95">Save Lesson Plan</button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* History Modal */}
+            {showHistory && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-end z-50">
+                    <div className="bg-white h-full w-full max-w-lg shadow-2xl p-8 animate-in slide-in-from-right duration-300">
+                        <div className="flex justify-between items-center mb-8 border-b pb-4">
+                            <h2 className="text-2xl font-black text-[#001f3f]">Version History</h2>
+                            <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-gray-100 rounded-full transition"><X size={24} /></button>
+                        </div>
+                        <div className="space-y-6 overflow-y-auto max-h-[80vh]">
+                            {history.map((h, i) => (
+                                <div key={i} className="relative pl-8 border-l-2 border-orange-100 pb-6">
+                                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-orange-500 border-4 border-white shadow-sm" />
+                                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-black text-orange-600">{new Date(h.history_date).toLocaleString()}</span>
+                                            <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">{h.history_type === '+' ? 'Created' : 'Updated'}</span>
+                                        </div>
+                                        <h4 className="font-bold text-[#001f3f] mb-1">{h.title}</h4>
+                                        <p className="text-xs text-gray-400 line-clamp-2">{h.objectives}</p>
+                                        <div className="mt-3 text-[10px] text-gray-400 uppercase font-black tracking-widest">Modified by {h.updated_by}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const TimetableView = ({ timetable, onRefresh, user, allSubjects }) => {
+    const [selectedClass, setSelectedClass] = useState('JSS_1');
+    const [showAdd, setShowAdd] = useState(false);
+
+    useEffect(() => {
+        onRefresh(selectedClass);
+    }, [selectedClass]);
+
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+
+    return (
+        <div className="space-y-8">
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-bold text-[#001f3f]">Weekly Timetable</h2>
+                    <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="p-2 bg-white border border-gray-200 rounded-xl font-bold text-[#001f3f] shadow-sm outline-none focus:ring-2 focus:ring-orange-500">
+                        {['JSS_1', 'JSS_2', 'JSS_3', 'SS_1', 'SS_2', 'SS_3'].map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+                {user?.role === 'SUPER_ADMIN' && (
+                    <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl font-bold shadow-lg shadow-orange/20 hover:bg-orange-700 transition">
+                        <PlusCircle size={18} /> Add Entry
+                    </button>
+                )}
+            </div>
+
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-6 divide-x divide-gray-100 border-b border-gray-100 bg-gray-50/50">
+                    <div className="p-4 bg-gray-100/50" />
+                    {days.map(day => (
+                        <div key={day} className="p-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">{day}</div>
+                    ))}
+                </div>
+                {/* Simplified Time Grid */}
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(period => (
+                    <div key={period} className="grid grid-cols-6 divide-x divide-gray-100 border-b border-gray-100">
+                        <div className="p-6 bg-gray-50/30 flex flex-col items-center justify-center">
+                            <span className="text-xs font-black text-[#001f3f]">Period {period}</span>
+                            <span className="text-[10px] text-gray-400">{8 + period}:00</span>
+                        </div>
+                        {days.map(day => {
+                            const entry = timetable.find(e => e.day_of_week === day && e.start_time.startsWith(`${8 + period < 10 ? '0' + (8 + period) : 8 + period}`));
+                            return (
+                                <div key={day} className="p-2 min-h-[100px] flex flex-col gap-1 items-center justify-center group relative">
+                                    {entry ? (
+                                        <div className="bg-orange-50/80 p-3 rounded-2xl border border-orange-100 w-full h-full flex flex-col items-center justify-center text-center">
+                                            <span className="text-xs font-black text-orange-700 leading-tight mb-1 uppercase tracking-tight">{entry.subject_name}</span>
+                                            <span className="text-[10px] text-orange-500/80 font-bold">{entry.room_number || 'Room 1'}</span>
+                                            {user?.role === 'SUPER_ADMIN' && (
+                                                <button onClick={async () => { if (confirm('Del?')) { await api.delete(`/academics/timetable/${entry.id}/delete/`); onRefresh(selectedClass); } }} className="absolute inset-0 bg-red-500/90 text-white opacity-0 group-hover:opacity-100 rounded-2xl flex items-center justify-center transition-all">
+                                                    <Trash2 size={24} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : '-'}
+                                </div>
+                            );
+                        })}
+                    </div>
+                ))}
+            </div>
+
+            {showAdd && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-black text-[#001f3f]">Add Period</h2>
+                            <button onClick={() => setShowAdd(false)} className="p-2 hover:bg-gray-100 rounded-full transition"><X size={24} /></button>
+                        </div>
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.target);
+                            const data = Object.fromEntries(formData.entries());
+                            data.class_grade = selectedClass;
+                            await api.post('/academics/timetable/save/', data);
+                            setShowAdd(false);
+                            onRefresh(selectedClass);
+                        }} className="space-y-4">
+                            <select name="subject" required className="w-full p-3 bg-gray-50 border rounded-xl font-bold">
+                                {allSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                            <select name="day_of_week" required className="w-full p-3 bg-gray-50 border rounded-xl font-bold">
+                                {days.map(d => <option key={d} value={d}>{d}</option>)}
+                            </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input name="start_time" type="time" required className="w-full p-3 bg-gray-50 border rounded-xl font-bold" />
+                                <input name="end_time" type="time" required className="w-full p-3 bg-gray-50 border rounded-xl font-bold" />
+                            </div>
+                            <input name="room_number" placeholder="Room Number" className="w-full p-3 bg-gray-50 border rounded-xl font-bold" />
+                            <button type="submit" className="w-full py-4 bg-[#001f3f] text-white rounded-2xl font-black">Save Period</button>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const AdminManagementView = ({ user, allSubjects, allocations, setAllocations, onRefresh }) => {
+    const [subName, setSubName] = useState('');
+    const [subCode, setSubCode] = useState('');
+
+    const handleCreateSubject = async () => {
+        if (!subName || !subCode) return;
+        await api.post('/academics/subjects/save/', { name: subName, code: subCode });
+        setSubName(''); setSubCode('');
+        onRefresh();
+    };
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Subject Management */}
+            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                <h3 className="text-xl font-black text-[#001f3f] mb-6 flex items-center gap-2">
+                    <BookOpen className="text-orange-500" /> Subject Catalog
+                </h3>
+                <div className="flex gap-2 mb-6">
+                    <input className="flex-1 p-3 bg-gray-50 border rounded-xl" placeholder="Name" value={subName} onChange={e => setSubName(e.target.value)} />
+                    <input className="w-24 p-3 bg-gray-50 border rounded-xl" placeholder="Code" value={subCode} onChange={e => setSubCode(e.target.value)} />
+                    <button onClick={handleCreateSubject} className="p-3 bg-orange-600 text-white rounded-xl shadow-lg hover:bg-orange-700 transition"><PlusCircle /></button>
+                </div>
+                <div className="max-h-[400px] overflow-y-auto space-y-2">
+                    {allSubjects.map(s => (
+                        <div key={s.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 group">
+                            <div>
+                                <div className="font-bold text-[#001f3f]">{s.name}</div>
+                                <div className="text-[10px] text-gray-400 font-mono">{s.code}</div>
+                            </div>
+                            <button onClick={async () => { if (confirm('Del?')) { await api.delete(`/academics/subjects/${s.id}/delete/`); onRefresh(); } }} className="opacity-0 group-hover:opacity-100 p-2 text-red-500 transition-opacity"><Trash2 size={16} /></button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Assignments Summary */}
+            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                <h3 className="text-xl font-black text-[#001f3f] mb-6 flex items-center gap-2">
+                    <Users className="text-blue-500" /> Teaching Assignments
+                </h3>
+                <div className="max-h-[500px] overflow-y-auto space-y-3">
+                    {allocations.slice(0, 50).map(a => (
+                        <div key={a.id} className="p-4 bg-blue-50/30 rounded-2xl border border-blue-100 flex justify-between items-center">
+                            <div>
+                                <div className="text-sm font-black text-blue-900">{a.subject_name}</div>
+                                <div className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{a.class_grade}</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-xs font-bold text-[#001f3f]">{a.teacher_name}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const StudentAttendanceView = ({ user, allocations, stats }) => {
+    const [selectedClass, setSelectedClass] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Get classes assigned to this teacher
+    const teacherClasses = stats.filter(stat => {
+        if (user?.role !== 'TEACHER') return true;
+        return allocations.some(a => a.class_grade === stat.code || a.class_grade === stat.label);
+    });
+
+    useEffect(() => {
+        if (teacherClasses.length > 0 && !selectedClass) {
+            setSelectedClass(teacherClasses[0].code);
+        }
+    }, [teacherClasses]);
+
+    useEffect(() => {
+        if (selectedClass) {
+            fetchAttendance();
+        }
+    }, [selectedClass, date]);
+
+    const fetchAttendance = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/academics/attendance/', {
+                params: { class_grade: selectedClass, date: date }
+            });
+            setStudents(res.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleStatusChange = (studentId, status) => {
+        setStudents(prev => prev.map(s =>
+            s.student_id === studentId ? { ...s, status } : s
+        ));
+    };
+
+    const saveAttendance = async () => {
+        setSaving(true);
+        try {
+            await api.post('/academics/attendance/mark/', {
+                class_grade: selectedClass,
+                date: date,
+                attendance: students.map(s => ({
+                    student_id: s.student_id,
+                    status: s.status,
+                    remarks: s.remarks || ''
+                }))
+            });
+            alert('Attendance saved successfully!');
+        } catch (err) {
+            console.error(err);
+            alert('Failed to save attendance.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-6">
+                    <div>
+                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest block mb-1">Class</label>
+                        <select
+                            value={selectedClass}
+                            onChange={(e) => setSelectedClass(e.target.value)}
+                            className="p-2 border rounded-xl font-bold bg-gray-50 text-navy focus:ring-2 focus:ring-orange-500 outline-none"
+                        >
+                            {teacherClasses.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest block mb-1">Date</label>
+                        <input
+                            type="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            className="p-2 border rounded-xl font-bold bg-gray-50 text-navy focus:ring-2 focus:ring-orange-500 outline-none"
+                        />
+                    </div>
+                </div>
+                <button
+                    onClick={saveAttendance}
+                    disabled={saving || students.length === 0}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#001f3f] text-white rounded-xl font-black shadow-lg hover:bg-orange-600 transition disabled:opacity-50"
+                >
+                    {saving ? <div className="animate-spin h-5 w-5 border-2 border-white rounded-full border-t-transparent" /> : <Save size={18} />}
+                    Save Attendance
+                </button>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                {loading ? (
+                    <div className="flex justify-center p-12">
+                        <div className="animate-spin h-8 w-8 border-4 border-navy border-t-transparent rounded-full opacity-50"></div>
+                    </div>
+                ) : (
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50 border-b text-xs font-black text-gray-400 uppercase tracking-widest">
+                            <tr>
+                                <th className="px-6 py-4">Student</th>
+                                <th className="px-6 py-4 text-center">Status</th>
+                                <th className="px-6 py-4">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                            {students.map(s => (
+                                <tr key={s.student_id} className="hover:bg-gray-50/50 transition">
+                                    <td className="px-6 py-4">
+                                        <div className="font-bold text-navy">{s.student_name}</div>
+                                        <div className="text-xs text-gray-400 font-mono">{s.admission_number}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex justify-center gap-2">
+                                            {['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'].map(status => (
+                                                <button
+                                                    key={status}
+                                                    onClick={() => handleStatusChange(s.student_id, status)}
+                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${s.status === status
+                                                        ? (status === 'PRESENT' ? 'bg-green-600 text-white' : status === 'ABSENT' ? 'bg-red-600 text-white' : 'bg-orange-500 text-white')
+                                                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                                        }`}
+                                                >
+                                                    {status}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <input
+                                            placeholder="Optional note..."
+                                            className="w-full p-2 bg-gray-50 border rounded-lg text-sm"
+                                            value={s.remarks || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setStudents(prev => prev.map(item =>
+                                                    item.student_id === s.student_id ? { ...item, remarks: val } : item
+                                                ));
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const ExtracurricularView = ({ user, activities, roles, onRefresh }) => {
+    const [showGrant, setShowGrant] = useState(false);
+
+    return (
+        <div className="space-y-8">
+            <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-black text-navy flex items-center gap-2">
+                    <Trophy className="text-orange-500" /> Extracurricular Activities
+                </h2>
+                {user?.role === 'SUPER_ADMIN' && (
+                    <button onClick={() => setShowGrant(true)} className="flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-xl font-bold shadow-lg hover:bg-orange-600 transition">
+                        <PlusCircle size={18} /> Manage Activities
+                    </button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* My Roles */}
+                <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm h-fit">
+                    <h3 className="text-lg font-black text-navy mb-6 flex items-center gap-2">
+                        <UserCheck className="text-blue-500" /> My Assigned Roles
+                    </h3>
+                    <div className="space-y-4">
+                        {roles.length > 0 ? roles.map(r => (
+                            <div key={r.id} className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center">
+                                <div>
+                                    <div className="font-bold text-navy">{r.activity_name}</div>
+                                    <div className="text-xs text-blue-600 font-bold uppercase tracking-widest">{r.role}</div>
+                                </div>
+                                <div className="text-right text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                    Since {new Date(r.assigned_date).toLocaleDateString()}
+                                </div>
+                            </div>
+                        )) : (
+                            <div className="text-center py-12 text-gray-400 italic">No assigned extracurricular roles.</div>
+                        )}
+                    </div>
+                </div>
+
+                {/* All Activities */}
+                <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm h-fit">
+                    <h3 className="text-lg font-black text-navy mb-6 flex items-center gap-2">
+                        <ECIcon className="text-green-500" /> School Activities
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4">
+                        {activities.map(a => (
+                            <div key={a.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-orange-200 transition">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h4 className="font-bold text-navy text-lg">{a.name}</h4>
+                                    <span className="bg-white px-3 py-1 rounded-full text-[10px] font-black text-orange-600 uppercase tracking-widest border border-gray-100 shadow-sm">
+                                        {a.category}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-4">{a.description}</p>
+                                <div className="flex justify-between items-center pt-4 border-t border-gray-200/50">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-bold">AJ</div>
+                                        <span className="text-xs font-bold text-gray-600 underline">OnPoint Konceptz</span>
+                                    </div>
+                                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Ongoing Activity</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Admin Modal for Activities */}
+            {showGrant && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-black text-navy">Manage Activity</h2>
+                            <button onClick={() => setShowGrant(false)} className="p-2 hover:bg-gray-100 rounded-full transition"><X size={24} /></button>
+                        </div>
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.target);
+                            const data = Object.fromEntries(formData.entries());
+                            await api.post('/staff/extracurricular-activities/save/', data);
+                            setShowGrant(false);
+                            onRefresh();
+                        }} className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Activity Name</label>
+                                <input name="name" required placeholder="e.g. Football Club" className="w-full p-3 bg-gray-50 border rounded-xl font-bold" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Category</label>
+                                <select name="category" required className="w-full p-3 bg-gray-50 border rounded-xl font-bold">
+                                    <option value="SPORTS">Sports</option>
+                                    <option value="ARTS">Arts & Culture</option>
+                                    <option value="ACADEMIC">Academic Club</option>
+                                    <option value="COMMUNITY">Community Service</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Description</label>
+                                <textarea name="description" rows="3" className="w-full p-3 bg-gray-50 border rounded-xl" placeholder="Describe the activity..." />
+                            </div>
+                            <button type="submit" className="w-full py-4 bg-[#001f3f] text-white rounded-2xl font-black shadow-xl">Create Activity</button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

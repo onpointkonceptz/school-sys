@@ -177,7 +177,6 @@ const PaymentModal = ({ student, onClose, onSuccess }) => {
                                         onChange={e => setPaymentType(e.target.value)}
                                     >
                                         <option value="TUITION">Tuition</option>
-                                        <option value="BOARDING">Boarding</option>
                                         <option value="ADMISSION">Admission</option>
                                         <option value="PTA">PTA</option>
                                         <option value="EXAM">Exam</option>
@@ -316,7 +315,10 @@ const PaymentModal = ({ student, onClose, onSuccess }) => {
                 {receiptData && (
                     <div className="max-w-xl mx-auto border-2 border-[#001f3f] p-8">
                         <div className="text-center border-b-2 border-[#001f3f] pb-4 mb-4">
-                            <h1 className="text-2xl font-bold text-[#001f3f]">KADWEL INTERNATIONAL SCHOOLS</h1>
+                            <div className="flex flex-col items-center mb-2">
+                                <span className="text-6xl font-black text-[#001f3f] tracking-tighter uppercase">Kadwel</span>
+                                <span className="text-[#001f3f] text-sm font-light tracking-[0.5em] uppercase -mt-3">SCHOOL</span>
+                            </div>
                             <p className="text-sm text-gray-600"> OFFICIAL PAYMENT RECEIPT </p>
                         </div>
                         <div className="space-y-4 font-mono">

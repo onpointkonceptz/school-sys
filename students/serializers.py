@@ -15,7 +15,7 @@ class StudentSerializer(serializers.ModelSerializer):
         # Generate a unique admission number if one wasn't provided.
         if not validated_data.get('admission_number'):
             year = date.today().year
-            prefix = f'KAD/{year}/'
+            prefix = f'KADWEL/{year}/'
             existing = set(
                 Student.objects.filter(admission_number__startswith=prefix)
                 .values_list('admission_number', flat=True)

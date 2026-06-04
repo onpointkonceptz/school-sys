@@ -4,8 +4,8 @@ from .models import FeeStructure, StudentFee, Transaction, ExpenseCategory, Expe
 
 @admin.register(FeeStructure)
 class FeeStructureAdmin(admin.ModelAdmin):
-    list_display = ('name', 'class_grade', 'student_status', 'student_type', 'term', 'session', 'amount')
-    list_filter = ('class_grade', 'student_status', 'student_type', 'term', 'session')
+    list_display = ('name', 'class_grade', 'student_status', 'term', 'session', 'amount')
+    list_filter = ('class_grade', 'student_status', 'term', 'session')
     search_fields = ('name',)
     ordering = ('class_grade', 'name')
 

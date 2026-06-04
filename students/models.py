@@ -32,17 +32,12 @@ class Student(models.Model):
         NEW = 'NEW', 'New Admission' 
         RETURNING = 'RETURNING', 'Returning'
 
-    class StudentType(models.TextChoices):
-        DAY = 'DAY', 'Day Student'
-        BOARDING = 'BOARDING', 'Boarding Student'
-
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     admission_number = models.CharField(max_length=20, unique=True, blank=True)
     
     class_grade = models.CharField(max_length=20, choices=ClassGrade.choices)
     student_status = models.CharField(max_length=20, choices=StudentStatus.choices, default=StudentStatus.ACTIVE)
-    student_type = models.CharField(max_length=20, choices=StudentType.choices, default=StudentType.DAY)
     
     # Session Info
     current_term = models.CharField(max_length=20, default='1st Term')
@@ -83,18 +78,10 @@ class Student(models.Model):
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
 
-    # Legacy field support (can be removed later if we migrate fully)
-    is_boarding = models.BooleanField(default=False, editable=False) 
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     history = HistoricalRecords()
-
-    def save(self, *args, **kwargs):
-        # Auto-sync legacy field
-        self.is_boarding = (self.student_type == self.StudentType.BOARDING)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.admission_number})"

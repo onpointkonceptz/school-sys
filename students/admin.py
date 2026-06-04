@@ -4,8 +4,8 @@ from .models import Student, StudentAcademicHistory
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('admission_number', 'last_name', 'first_name', 'class_grade', 'student_status', 'student_type', 'current_session', 'parent_phone')
-    list_filter = ('class_grade', 'student_status', 'student_type', 'current_session', 'current_term', 'gender')
+    list_display = ('admission_number', 'last_name', 'first_name', 'class_grade', 'student_status', 'current_session', 'parent_phone')
+    list_filter = ('class_grade', 'student_status', 'current_session', 'current_term', 'gender')
     search_fields = ('first_name', 'last_name', 'admission_number', 'parent_name', 'parent_phone')
     ordering = ('class_grade', 'last_name')
     list_per_page = 50
@@ -14,7 +14,7 @@ class StudentAdmin(admin.ModelAdmin):
             'fields': ('first_name', 'last_name', 'admission_number', 'date_of_birth', 'gender', 'passport_photo')
         }),
         ('Academic', {
-            'fields': ('class_grade', 'student_status', 'student_type', 'current_term', 'current_session', 'date_of_admission', 'previous_school')
+            'fields': ('class_grade', 'student_status', 'current_term', 'current_session', 'date_of_admission', 'previous_school')
         }),
         ('Guardian', {
             'fields': ('parent_name', 'parent_phone', 'parent_email', 'parent_address', 'relationship_to_student')
