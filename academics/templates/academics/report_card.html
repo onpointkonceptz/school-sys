@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #333;
+            line-height: 1.4;
+            padding: 0.5in;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #001f3f;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .school-name {
+            font-size: 32px;
+            font-weight: 900;
+            color: #001f3f;
+            margin: 0;
+            padding: 0;
+        }
+
+        .school-subtitle {
+            font-size: 10px;
+            font-weight: 200;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            margin-top: -5px;
+        }
+
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+            text-transform: uppercase;
+            color: #555;
+        }
+
+        .info-grid {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            display: inline-block;
+            width: 45%;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .summary-section {
+            margin-top: 20px;
+            border: 1px solid #001f3f;
+            padding: 15px;
+        }
+
+        .summary-table {
+            width: 100%;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .summary-table td {
+            border: none;
+            text-align: left;
+            padding: 5px 0;
+        }
+
+        .remarks-section {
+            margin-top: 30px;
+        }
+
+        .remark-box {
+            border-bottom: 1px dotted #999;
+            padding: 10px 0;
+            min-height: 40px;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #aaa;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1 class="school-name">Kadwel</h1>
+        <div class="school-subtitle">SCHOOL</div>
+        <p class="report-title">End of Term Report Card - {{ term }} ({{ session }})</p>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item"><span class="bold">Student Name:</span> {{ student.name }}</div>
+        <div class="info-item"><span class="bold">Admission No:</span> {{ student.admission_number }}</div>
+        <div class="info-item"><span class="bold">Class:</span> {{ student.class_grade }}</div>
+        <div class="info-item"><span class="bold">Position:</span> {{ position }} of {{ class_total }}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="text-left">Subject</th>
+                <th>Test (20)</th>
+                <th>Assign (10)</th>
+                <th>Midterm (20)</th>
+                <th>Exam (50)</th>
+                <th>Total (100)</th>
+                <th>Grade</th>
+                <th>Remark</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in results %}
+            <tr>
+                <td class="text-left bold">{{ res.subject }}</td>
+                <td>{{ res.test }}</td>
+                <td>{{ res.assignment }}</td>
+                <td>{{ res.midterm }}</td>
+                <td>{{ res.exam }}</td>
+                <td class="bold">{{ res.total }}</td>
+                <td class="bold">{{ res.grade }}</td>
+                <td>{{ res.remark }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary-section">
+        <table class="summary-table">
+            <tr>
+                <td>Overall Total: {{ summary.total_score }}</td>
+                <td style="text-align: center;">Average: {{ summary.average }}%</td>
+                <td style="text-align: right;">Status: {{ status|default:"PROMOTED" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="remarks-section">
+        <p class="bold">Class Teacher's Remark:</p>
+        <div class="remark-box">{{ comments.class_teacher_comment|default:"No comment provided." }}</div>
+
+        <p class="bold" style="margin-top: 20px;">Principal's Remark:</p>
+        <div class="remark-box">{{ comments.principal_comment|default:"No comment provided." }}</div>
+    </div>
+
+    <div class="footer">
+        Kadwel School - Management Information System &copy; {{ current_year }}
+    </div>
+</body>
+
+</html>

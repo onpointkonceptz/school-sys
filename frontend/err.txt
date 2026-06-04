@@ -1,0 +1,21 @@
+X [ERROR] Expected ")" but found end of file
+
+    vite.config.js:40:0:
+      40 │ 
+         │ ^
+         ╵ )
+
+[31mfailed to load config from C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\vite.config.js[39m
+[31merror during build:
+Error: Build failed with 1 error:
+vite.config.js:40:0: ERROR: Expected ")" but found end of file
+    at failureErrorWithLog (C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:1472:15)
+    at C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:945:25
+    at runOnEndCallbacks (C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:1315:45)
+    at buildResponseToResult (C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:943:7)
+    at C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:970:16
+    at responseCallbacks.<computed> (C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:622:9)
+    at handleIncomingPacket (C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:677:12)
+    at Socket.readFromStdout (C:\Users\USER\.gemini\antigravity\scratch\Ajec\frontend\node_modules\esbuild\lib\main.js:600:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)[39m
