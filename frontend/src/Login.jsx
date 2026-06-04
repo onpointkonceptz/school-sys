@@ -13,25 +13,42 @@ const Login = ({ onLogin }) => {
         setLoading(true);
         setError('');
 
-        try {
-            const response = await axios.post('/api/login/', {
-                username,
-                password
-            });
+        const attempt = async (retryCount = 0) => {
+            try {
+                const response = await axios.post('/api/login/', {
+                    username,
+                    password
+                }, { timeout: 60000 }); // 60s timeout for Render cold start
 
-            if (response.data.success) {
-                // Store the auth token so all future requests include it
-                if (response.data.token) {
-                    localStorage.setItem('authToken', response.data.token);
+                if (response.data.success) {
+                    if (response.data.token) {
+                        localStorage.setItem('authToken', response.data.token);
+                    }
+                    onLogin(response.data);
+                } else {
+                    setError('Invalid credentials. Please check your username and password.');
                 }
-                onLogin(response.data);
+            } catch (err) {
+                console.error('Login error:', err);
+                if (err.code === 'ECONNABORTED' || (err.request && !err.response)) {
+                    // Timeout or no response — Render might be waking up
+                    if (retryCount < 1) {
+                        setError('Server is waking up, please wait...');
+                        await new Promise(r => setTimeout(r, 8000));
+                        return attempt(retryCount + 1);
+                    }
+                    setError('Server took too long to respond. Please try again in 30 seconds.');
+                } else if (err.response) {
+                    const msg = err.response.data?.error || err.response.data?.detail || '';
+                    setError(msg || 'Invalid credentials');
+                } else {
+                    setError('Cannot connect to server. Please check your connection.');
+                }
             }
-        } catch (err) {
-            console.error(err);
-            setError('Invalid credentials');
-        } finally {
-            setLoading(false);
-        }
+        };
+
+        await attempt();
+        setLoading(false);
     };
 
     return (
