@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes, authentication_classes, parser_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
 from django.db.models import Sum
 from core.models import CustomUser
 from students.models import Student
@@ -14,33 +15,34 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 @csrf_exempt
 @api_view(['POST'])
-@authentication_classes([]) # Disable auth to prevent CSRF check on login
+@authentication_classes([])
 @permission_classes([AllowAny])
 def login_api(request):
     username = request.data.get('username')
     password = request.data.get('password')
-    
+
     print(f"DEBUG LOGIN: Attempting login for username: '{username}'")
-    
-    # Check if user actually exists in DB
+
     try:
         user_exists = CustomUser.objects.filter(username=username).exists()
         print(f"DEBUG LOGIN: User '{username}' exists in database: {user_exists}")
     except Exception as e:
         print(f"DEBUG LOGIN: Database error checking user: {e}")
-        
+
     user = authenticate(request, username=username, password=password)
-    
+
     if user is not None:
         print(f"DEBUG LOGIN: Authentication successful for '{username}'")
-        login(request, user)
+        # Issue (or retrieve) a DRF token — works cross-domain, no cookie needed
+        token, _ = Token.objects.get_or_create(user=user)
         return Response({
             'success': True,
+            'token': token.key,
             'role': user.role,
             'name': user.get_full_name() or user.username
         })
     else:
-        print(f"DEBUG LOGIN: Authentication FAILED for '{username}' (invalid password or user does not exist)")
+        print(f"DEBUG LOGIN: Authentication FAILED for '{username}'")
         return Response({'success': False, 'error': 'Invalid credentials'}, status=400)
 
 @api_view(['POST'])

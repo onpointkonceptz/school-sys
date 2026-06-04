@@ -14,18 +14,16 @@ const Login = ({ onLogin }) => {
         setError('');
 
         try {
-            // In a real scenario, use axios with credentials
-            // For now, assume localhost:8000 is accessible 
-            // We need to enable CORS credentials on backend if we want sessions to stick
-            // Or just mock it if we can't easily set up the cookie flow cross-port without more config
-
-            // Let's try the real endpoint
             const response = await axios.post('/api/login/', {
                 username,
                 password
-            }, { withCredentials: true });
+            });
 
             if (response.data.success) {
+                // Store the auth token so all future requests include it
+                if (response.data.token) {
+                    localStorage.setItem('authToken', response.data.token);
+                }
                 onLogin(response.data);
             }
         } catch (err) {

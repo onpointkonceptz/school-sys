@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'simple_history',
     'django_bootstrap5',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     # Local
     'core',
@@ -132,8 +133,8 @@ LOGIN_URL = 'login'
 # --- DRF & CORS ---
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',

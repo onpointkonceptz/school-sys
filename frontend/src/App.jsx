@@ -36,13 +36,13 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      // Since you are working with Antigravity/Django, ensure your CSRF tokens are handled
       await axios.post('/api/logout/');
     } catch (e) {
       console.error("Logout failed", e);
     }
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
   };
 
   const handleNavigate = (tab, data = {}) => {
