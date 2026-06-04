@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import {
     TrendingUp, TrendingDown, Users, AlertTriangle, CreditCard,
     DollarSign, BookOpen, Layout, CheckCircle, Calendar,
@@ -37,11 +37,7 @@ const Dashboard = ({ onNavigate, user }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch from real API
-                // We use withCredentials to send the session cookie established at login
-                const response = await axios.get('/api/dashboard/', {
-                    withCredentials: true
-                });
+                const response = await api.get('/dashboard/');
                 setData(response.data);
             } catch (err) {
                 console.error("Dashboard Fetch Error:", err);

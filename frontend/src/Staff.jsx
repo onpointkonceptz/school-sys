@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import {
     Users, Clock, Calendar, FileText, Bell, TrendingUp,
     Plus, Search, Filter, Mail, Phone, MapPin,
@@ -9,27 +9,9 @@ import {
     Shield, Activity, Lock, Unlock, FileCheck, Info, BookOpen as BookIcon
 } from 'lucide-react';
 
-const api = axios.create({
-    baseURL: '/api/staff',
-    withCredentials: true,
-});
+// globalApi is the same shared instance — both use /staff/ or /api/ prefixed paths
+const globalApi = api;
 
-api.interceptors.request.use(config => {
-    const match = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-    if (match) config.headers['X-CSRFToken'] = match.split('=')[1];
-    return config;
-});
-
-const globalApi = axios.create({
-    baseURL: '/api',
-    withCredentials: true,
-});
-
-globalApi.interceptors.request.use(config => {
-    const match = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-    if (match) config.headers['X-CSRFToken'] = match.split('=')[1];
-    return config;
-});
 
 const Staff = ({ user, onNavigate }) => {
     const [view, setView] = useState('DIRECTORY'); // DIRECTORY, ATTENDANCE, LEAVE, CALENDAR, PERFORMANCE, MANAGEMENT
@@ -44,7 +26,7 @@ const Staff = ({ user, onNavigate }) => {
 
     const fetchStaff = async () => {
         try {
-            const res = await api.get('/list/');
+            const res = await api.get('/staff/list/');
             setStaffList(res.data);
         } catch (error) {
             console.error("Failed to fetch staff", error);
@@ -221,13 +203,13 @@ const StaffAttendanceTab = () => {
     // For simplicity, I'll assume we pass staffList down or fetch it here.
     const [staffList, setStaffList] = useState([]);
     useEffect(() => {
-        api.get('/list/').then(res => setStaffList(res.data));
+        api.get('/staff/list/').then(res => setStaffList(res.data));
     }, []);
 
     const fetchAttendance = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/attendance/', { params: { date } });
+            const res = await api.get('/staff/attendance/', { params: { date } });
             setAttendance(res.data);
         } catch (e) {
             console.error(e);
@@ -239,7 +221,7 @@ const StaffAttendanceTab = () => {
     const handleMarkSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/attendance/record/', { ...markData, date });
+            await api.post('/staff/attendance/record/', { ...markData, date });
             setShowMarkModal(false);
             fetchAttendance();
         } catch (e) {
@@ -376,12 +358,12 @@ const LeaveManagementTab = () => {
     const [requests, setRequests] = useState([]);
 
     useEffect(() => {
-        api.get('/leave/requests/').then(res => setRequests(res.data));
+        api.get('/staff/leave/requests/').then(res => setRequests(res.data));
     }, []);
 
     const handleApprove = async (id, status) => {
         try {
-            await api.post('/leave/approve/', { id, status });
+            await api.post('/staff/leave/approve/', { id, status });
             setRequests(requests.map(r => r.id === id ? { ...r, status } : r));
         } catch (e) {
             alert("Action failed.");
@@ -459,7 +441,7 @@ const StaffManagementPanel = ({ staffId, onBack, user }) => {
     const fetchDetails = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/manage/details/${staffId}/`);
+            const res = await api.get(`/staff/manage/details/${staffId}/`);
             setData(res.data);
         } catch (error) {
             console.error("Failed to fetch staff details", error);
@@ -545,7 +527,7 @@ const ManagementOverview = ({ data, onRefresh }) => {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/profile/update/', { user: user.id, ...formData });
+            await api.post('/staff/profile/update/', { user: user.id, ...formData });
             alert("Profile updated!");
             onRefresh();
         } catch (e) { alert("Update failed"); }
@@ -554,7 +536,7 @@ const ManagementOverview = ({ data, onRefresh }) => {
     const toggleStatus = async () => {
         if (!confirm(`Are you sure you want to ${user.is_active ? 'DEACTIVATE' : 'ACTIVATE'} this account?`)) return;
         try {
-            await api.post('/manage/status-toggle/', { user_id: user.id, is_active: !user.is_active });
+            await api.post('/staff/manage/status-toggle/', { user_id: user.id, is_active: !user.is_active });
             onRefresh();
         } catch (e) { alert("Action failed"); }
     };
@@ -746,7 +728,7 @@ const DocumentVault = ({ data, onRefresh }) => {
         formData.append('document_type', 'CERTIFICATE');
 
         try {
-            await api.post('/manage/document-upload/', formData, {
+            await api.post('/staff/manage/document-upload/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             onRefresh();
@@ -802,7 +784,7 @@ const CalendarTab = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        api.get('/calendar/').then(res => {
+        api.get('/staff/calendar/').then(res => {
             setEvents(res.data);
             setLoading(false);
         }).catch(err => {
@@ -872,7 +854,7 @@ const PerformanceTab = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        api.get('/evaluations/').then(res => {
+        api.get('/staff/evaluations/').then(res => {
             setEvaluations(res.data);
             setLoading(false);
         }).catch(err => {

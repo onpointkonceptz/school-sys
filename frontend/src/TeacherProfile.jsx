@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import {
     User, Mail, Phone, MapPin, Camera, Save,
     BookOpen, CheckCircle, Calendar, Briefcase,
@@ -7,18 +7,6 @@ import {
     Clock, Bell, AlertTriangle, CheckSquare
 } from 'lucide-react';
 import Academics from './Academics';
-
-const api = axios.create({
-    baseURL: '/api',
-    withCredentials: true,
-});
-
-// Attach CSRF token
-api.interceptors.request.use(config => {
-    const match = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-    if (match) config.headers['X-CSRFToken'] = match.split('=')[1];
-    return config;
-});
 
 const TeacherProfile = ({ user, onAction }) => {
     const [profileData, setProfileData] = useState(null);

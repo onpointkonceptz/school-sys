@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import {
     CreditCard, TrendingUp, TrendingDown, DollarSign,
     Plus, FileText, Search, Filter, Download, Calendar,
     Wallet, Settings, Trash2, Package, Receipt
 } from 'lucide-react';
-
-// Configure Axios
-const api = axios.create({
-    baseURL: '/api/accounts',
-    withCredentials: true,
-    headers: {
-        'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
-    }
-});
 
 const Accounts = ({ onNavigate }) => {
     const [view, setView] = useState('DASHBOARD');
@@ -22,7 +13,7 @@ const Accounts = ({ onNavigate }) => {
 
     const fetchStats = async () => {
         try {
-            const res = await api.get('/dashboard/');
+            const res = await api.get('/accounts/dashboard/');
             setStats(res.data);
         } catch (error) {
             console.error("Failed to fetch dashboard stats", error);
@@ -375,14 +366,14 @@ const ExpensesView = ({ onSuccess }) => {
     const [activeTab, setActiveTab] = useState('ALL');
 
     const fetchExpenses = async () => {
-        const res = await api.get('/expenses/');
+        const res = await api.get('/accounts/expenses/');
         setExpenses(res.data);
     };
 
     useEffect(() => {
         fetchExpenses();
-        fetch('/api/inventory/items/', { credentials: 'include' })
-            .then(r => r.json()).then(d => setInventoryItems(d)).catch(() => { });
+        api.get('/inventory/items/')
+            .then(res => setInventoryItems(res.data)).catch(() => { });
     }, []);
 
     const openModal = (type) => {
@@ -400,7 +391,7 @@ const ExpensesView = ({ onSuccess }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/expenses/', { ...formData, amount: totalAmount });
+            await api.post('/accounts/expenses/', { ...formData, amount: totalAmount });
             closeModal();
             fetchExpenses();
             if (onSuccess) onSuccess();
@@ -720,7 +711,7 @@ const LedgerView = () => {
 
     useEffect(() => {
         const fetchLedger = async () => {
-            const url = filterDate ? `/ledger/?start_date=${filterDate}` : '/ledger/';
+            const url = filterDate ? `/accounts/ledger/?start_date=${filterDate}` : '/accounts/ledger/';
             const res = await api.get(url);
             setEntries(res.data);
         };
@@ -787,7 +778,7 @@ const ReportsView = () => {
         setLoading(true);
         try {
             const params = { type: reportType, ...filters };
-            const res = await api.get('/reports/generate/', { params });
+            const res = await api.get('/accounts/reports/generate/', { params });
             setReportData(res.data);
         } catch (error) {
             console.error("Report generation failed", error);
@@ -921,7 +912,7 @@ const FeeConfigView = () => {
 
     const fetchFees = async () => {
         try {
-            const res = await api.get('/fee-structures/');
+            const res = await api.get('/accounts/fee-structures/');
             setFees(res.data);
         } catch (error) {
             console.error("Failed to fetch fee structures", error);
@@ -934,7 +925,7 @@ const FeeConfigView = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await api.post('/fee-structures/', formData);
+            await api.post('/accounts/fee-structures/', formData);
             setShowModal(false);
             setFormData({ name: '', amount: '', class_grade: '', student_status: '', term: '1st Term', session: '2025/2026' });
             fetchFees();
@@ -949,7 +940,7 @@ const FeeConfigView = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this fee structure?")) return;
         try {
-            await api.delete(`/fee-structures/${id}/`);
+            await api.delete(`/accounts/fee-structures/${id}/`);
             fetchFees();
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to delete fee structure');

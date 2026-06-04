@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Package, TrendingUp, TrendingDown, AlertTriangle, Search, Plus, Minus, History, Filter, X, Save } from 'lucide-react';
-
-// Configure Axios
-const api = axios.create({
-    baseURL: '/api/inventory',
-    withCredentials: true,
-    headers: {
-        'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
-    }
-});
+import api from './api';
 
 const InventoryResultCard = ({ title, value, icon: Icon, color, subtext }) => (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
@@ -45,8 +36,8 @@ const Inventory = () => {
         setLoading(true);
         try {
             const [statsRes, itemsRes] = await Promise.all([
-                api.get('/dashboard/'),
-                api.get('/items/')
+                api.get('/inventory/dashboard/'),
+                api.get('/inventory/items/')
             ]);
             setStats(statsRes.data);
             setItems(itemsRes.data);
@@ -60,9 +51,9 @@ const Inventory = () => {
     const handleSaveItem = async (formData) => {
         try {
             if (editingItem) {
-                await api.put(`/items/${editingItem.id}/`, formData);
+                await api.put(`/inventory/items/${editingItem.id}/`, formData);
             } else {
-                await api.post('/items/', formData);
+                await api.post('/inventory/items/', formData);
             }
             setShowItemModal(false);
             setEditingItem(null);
@@ -74,7 +65,7 @@ const Inventory = () => {
 
     const handleStockAction = async (formData) => {
         try {
-            await api.post('/stock/out/', { ...formData, item_id: stockAction.item.id });
+            await api.post('/inventory/stock/out/', { ...formData, item_id: stockAction.item.id });
             setShowStockModal(false);
             setStockAction(null);
             fetchData();
@@ -238,7 +229,7 @@ const MovementLog = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        api.get('/movements/').then(res => setLogs(res.data)).finally(() => setLoading(false));
+        api.get('/inventory/movements/').then(res => setLogs(res.data)).finally(() => setLoading(false));
     }, []);
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading Log...</div>;

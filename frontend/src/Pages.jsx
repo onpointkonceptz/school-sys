@@ -6,21 +6,7 @@ import AccountsComponent from './Accounts';
 import InventoryComponent from './Inventory';
 import AcademicsComponent from './Academics'; // Added Academics import
 
-// --- API Helper ---
-const api = axios.create({
-    baseURL: '/api',
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json',
-    }
-});
-
-// Attach CSRF token from cookie on every request (required by DRF SessionAuthentication)
-api.interceptors.request.use(config => {
-    const match = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-    if (match) config.headers['X-CSRFToken'] = match.split('=')[1];
-    return config;
-});
+import api from './api';
 
 // Reusable Components
 const PageHeader = ({ title, subTitle, actionLabel, onAction }) => (

@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { CreditCard, Plus, Search, X, Printer, CheckCircle } from 'lucide-react';
-
-// Configure Axios
-const api = axios.create({
-    baseURL: '/api',
-    withCredentials: true,
-    headers: {
-        'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
-    }
-});
 
 const PaymentModal = ({ student, onClose, onSuccess }) => {
     const [step, setStep] = useState(student ? 2 : 1); // 1: Search, 2: Payment, 3: Success/Receipt

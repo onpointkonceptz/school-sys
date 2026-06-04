@@ -1,25 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import {
     BookOpen, Users, Edit3, Save, CheckCircle, Search, Filter, X,
     User, CreditCard, ChevronRight, ArrowLeft, GraduationCap, LayoutDashboard, PlusCircle, Settings, Trash2, MoreVertical,
     Calendar, ClipboardList, Settings2, History, Download, Upload, FileText, Clock, UserCheck, Trophy, ClipboardCheck, Briefcase as ECIcon
 } from 'lucide-react';
-
-// Configure Axios
-const api = axios.create({
-    baseURL: '/api',
-    withCredentials: true,
-});
-
-// Attach CSRF token from cookie on every request
-api.interceptors.request.use(config => {
-    const match = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-    if (match) config.headers['X-CSRFToken'] = match.split('=')[1];
-    return config;
-});
-
 
 const Academics = ({ user, navData }) => {
     // Only Teachers have write access to Academics (grades, subjects, reports)
