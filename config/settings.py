@@ -144,7 +144,15 @@ _prod_origin = os.environ.get('PRODUCTION_ORIGIN', '').strip()
 if _prod_origin and not _prod_origin.startswith(('http://', 'https://')):
     _prod_origin = 'https://' + _prod_origin
 
-CORS_ALLOW_ALL_ORIGINS = True  # Safe — API uses session auth + CSRF tokens
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://adashingn-306cc.web.app',
+    'https://adashingn-306cc.firebaseapp.com',
+]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
