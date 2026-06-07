@@ -7,8 +7,18 @@ from pathlib import Path
 import os
 import dj_database_url
 
+import sys
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys._MEIPASS)
+    exe_dir = Path(sys.executable).parent
+    if exe_dir.name == '_internal':
+        DATA_DIR = exe_dir.parent
+    else:
+        DATA_DIR = exe_dir
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    DATA_DIR = Path(__file__).resolve().parent.parent
 
 # --- Security ---
 SECRET_KEY = os.environ.get(
@@ -16,7 +26,7 @@ SECRET_KEY = os.environ.get(
     'django-insecure-(@gpfuui!m!2)1td!glox*%doxlb(1b6*1@kk$4=0iy83emuv^'  # dev fallback only
 )
 
-DEBUG = True  # Temporarily forced for debugging production 500
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ['true', '1', 'yes']
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
@@ -87,12 +97,10 @@ if _db_url:
         'default': dj_database_url.parse(_db_url, conn_max_age=600)
     }
 else:
-    import sys
-    print("WARNING: DATABASE_URL not found. Falling back to SQLite.", file=sys.stderr)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': DATA_DIR / 'db.sqlite3',
         }
     }
 
@@ -124,7 +132,7 @@ STATICFILES_DIRS = [
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = DATA_DIR / 'media'
 
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'

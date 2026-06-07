@@ -29,3 +29,10 @@ Thumbs.db
 
 # Deployment
 *.log
+
+# PyInstaller Build
+build/
+dist/
+*.spec
+startup_debug.txt
+README.txt

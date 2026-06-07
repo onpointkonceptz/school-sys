@@ -15,12 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views as core_views
 from core import api as core_api
+from django.views.static import serve
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -44,4 +45,12 @@ urlpatterns = [
     path('api/staff/', include('staff.urls')),
     path('api/accounts/', include('accounting.urls')),
     path('api/academics/', include('academics.urls')),
+    
+    # Static Assets serving (for React build bundle)
+    path('assets/<path:path>', serve, {
+        'document_root': settings.BASE_DIR / 'frontend/dist/assets',
+    }),
+    
+    # Catch-all for React SPA routing
+    re_path(r'^.*$', core_views.react_app, name='react_app'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
