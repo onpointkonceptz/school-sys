@@ -7,4 +7,4 @@ builder = "nixpacks"
 buildCommand = "cd frontend && npm install && npm run build && cd .. && python manage.py collectstatic --noinput"
 
 [start]
-cmd = "python manage.py migrate && python manage.py createadmin && gunicorn config.wsgi --log-file -"
+cmd = "python manage.py migrate && python manage.py createadmin && python scripts/seed_kadwel.py && gunicorn config.wsgi --log-file -"
