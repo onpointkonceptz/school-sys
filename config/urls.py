@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/password/', core_api.change_password_api, name='change_password_api'),
     path('api/users/', core_api.manage_users_api, name='manage_users_list'),
     path('api/users/<int:pk>/', core_api.manage_users_api, name='manage_users_detail'),
+    path('api/seed-database/', core_api.seed_database_api, name='seed_database_api'),
     
     # Module APIs
     path('api/students/', include('students.urls')),

@@ -352,3 +352,26 @@ def manage_users_api(request, pk=None):
             
         target_user.save()
         return Response({'success': True})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def seed_database_api(request):
+    """
+    Temporary endpoint to seed the production database.
+    Only accessible by superusers.
+    """
+    if not getattr(request.user, 'is_superuser', False):
+        return Response({'error': 'Unauthorized'}, status=403)
+        
+    try:
+        from scripts.seed_kadwel import seed
+        seed()
+        return Response({'success': True, 'message': 'Database seeded successfully'})
+    except Exception as e:
+        import traceback
+        return Response({
+            'success': False, 
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }, status=500)
